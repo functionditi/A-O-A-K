@@ -1,0 +1,249 @@
+@font-face {
+    font-family: 'Formula Condensed';
+    src: url('itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf') format('opentype');
+   
+}
+
+
+ body{
+     padding-left:4vw;
+     padding-top:4vw;
+     background-size: 8vw 4vw;
+  /* background-image:
+    linear-gradient(to right, #F25C05 0.01px, transparent 1px),
+    linear-gradient(to bottom, #F25C05 0.01px, transparent 1px);
+    height: 100%;
+    width: 70%; */
+
+    background-size: 2vw 2vw; /* Set the size of the grid */
+    background-image: radial-gradient(circle, #F25C05 0.1vw, transparent 0.1vw); /* Create dots */
+    background-repeat: repeat; /* Ensure the pattern repeats */
+    height: 100%;
+    width: 70%;
+     
+ }
+
+
+
+
+
+h1{
+font-family: 'Formula Condensed';
+   font-weight: 20;
+   font-size: 12vw;
+   padding-bottom:0vw;
+   line-height: 160px;
+   
+ margin:0vw;
+ color: #F25C05;
+  -webkit-text-fill-color: #F25C05; 
+  -webkit-text-stroke-width: 0.1vw;
+  -webkit-text-stroke-color: #fff;
+  
+}
+
+
+h2{
+  
+  font-family: 'Formula Condensed';
+     font-weight: 20;
+     font-size: 3vw;
+     padding-bottom:1vw;
+   margin:0vw;
+   color: #F25C05;
+    
+  }
+
+  h3{
+  
+    font-family: 'Formula Condensed';
+       font-weight: 90;
+       font-size: 2vw;
+       padding-bottom:0vw;
+     margin:0vw;
+     color: #F25C05;
+     
+    }
+
+alt{
+    font-feature-settings: "ss01";
+    -moz-font-feature-settings: "ss01";
+    -webkit-font-feature-settings: "ss01";
+    
+ }
+
+ li, p{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+    /* font-family: 'Formula Condensed'; */
+   
+   font-size: 1.2vw;
+   padding-bottom:0vw;
+    
+ }
+
+ a{
+  font-family: 'Formula Condensed';
+  color: #F25C05;
+  font-size: 3vw;
+  font-style: italic;
+  text-decoration: none;
+  
+ }
+
+ 
+ .btn {
+  font-family: 'Formula Condensed';
+  font-weight: 100;
+  border: 2px solid #F25C05;
+  background-color: rgba(255, 255, 255, 10);
+  color: #F25C05;
+  padding: 7px 14px;
+  font-size: 2vw;
+  cursor: pointer;
+    border-radius: 40px;
+  }
+
+
+ 
+
+  .btn:hover{
+    color: black;
+    border: 2px solid #000;
+     }
+
+
+#altbutton{
+border: 2px solid #fff;
+background-color: #F25C05;
+color: #fff;
+}
+
+
+#altbutton:hover{
+  background-color: #311d1d;
+}
+
+
+  .bigger{
+    font-size: 5vw;
+  }
+
+  .fixedonscreen{
+  position:fixed; 
+  z-index: 2;
+  }
+
+  .column{
+    display: flex;
+    flex-basis: 100%;
+    flex-direction: column;
+    flex: 1;
+    height: fit-content;
+    width: 100%;
+  }
+
+  .textbox{
+    background-color: #fff;
+    padding: 3rem;
+    border: 2px solid #F25C05;
+    border-radius: 20px;
+  }
+  
+  
+ 
+
+  .row{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 4rem;
+    padding-left: 3rem;
+    padding-top: 1rem;
+  width: 50vw;
+  min-width: 50vw;
+  max-width: 50vw;
+    
+  }
+
+  .wider{
+    width: 100vw;
+    min-width: 85vw;
+    max-width: 85vw;
+  }
+
+  iframe {
+    margin: 0;
+    padding: 0;
+    width: 50vw;
+    height: 100vh;
+    display:inline-flex;
+    border: #fff;
+  }
+
+  figure{
+    padding:0%;
+    margin: 0%;
+  }
+  figcaption{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+    color: #F25C05;
+    font-style: italic;
+    font-size: 1vw;
+    background-color: #fff;
+    padding-top: 1rem;
+  }
+  img{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: flex;
+    display:inline-flex;
+  
+  }
+  .container{
+    
+    min-height: 100vh;
+    width: 75vw;
+    display: grid;
+    grid-template-columns:  repeat(4, 1fr);
+    column-gap: 20px;
+    row-gap: 10px;
+    margin: 20px;
+  }
+
+
+  .griditem{
+     color: #000;
+    
+  }
+
+  #p5sketch{
+    grid-column-start: 4;
+  grid-column-end: span 2;
+   
+  }
+  
+  .column.textbox {
+    display: flex; /* Enable flexbox for the container */
+    flex-direction: column; /* Keep the heading and paragraph stacked vertically */
+}
+
+.column.textbox img {
+    display: inline-block; /* Ensure the images are inline */
+    margin: 0.5rem; /* Add some spacing between the images */
+}
+
+.row.wider {
+    display: flex;
+    flex-wrap: wrap; /* Wrap content if necessary */
+}
+
+.textbox img {
+    flex: auto; 
+    /* Responsively handle spacing between images and size*/ 
+}
+
+  

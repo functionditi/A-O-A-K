@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Drag and Drop Images Anywhere</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: sans-serif;
+      width: 100vw;
+      height: 100vh;
+      overflow: hidden;
+      position: relative;
+    }
+
+    h1 {
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    /* The images themselves */
+    img.draggable {
+      position: absolute; 
+      top: 100px;         /* initial position: adjust as needed */
+      left: 100px;        /* initial position: adjust as needed */
+      cursor: grab; 
+      user-select: none;  /* prevent text selection when dragging */
+      max-width: 150px;   /* limit image size, just for demo */
+    }
+
+    /* Change cursor while dragging */
+    img.draggable:active {
+      cursor: grabbing;
+    }
+
+    /* Just to help see the boundary of the page */
+    .page-boundary {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      border: 2px dashed #ccc;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Drag and Drop Images Anywhere</h1>
+  <div class="page-boundary"></div>
+  
+  <!-- Images -->
+  <img src="https://via.placeholder.com/150/0000FF/FFFFFF?text=Image1" class="draggable" alt="Image1">
+  <img src="https://via.placeholder.com/150/FF0000/FFFFFF?text=Image2" class="draggable" alt="Image2">
+  <img src="https://via.placeholder.com/150/008000/FFFFFF?text=Image3" class="draggable" alt="Image3">
+
+  <script>
+    // Select all draggable images
+    const draggableImages = document.querySelectorAll('.draggable');
+
+    draggableImages.forEach((img) => {
+      let offsetX = 0;
+      let offsetY = 0;
+
+      // Prevent native drag behavior on the image
+      img.addEventListener('dragstart', (e) => e.preventDefault());
+
+      // When mouse is pressed on the image
+      img.addEventListener('mousedown', (e) => {
+        // Calculate current offset between mouse and image’s top-left
+        offsetX = e.clientX - img.offsetLeft;
+        offsetY = e.clientY - img.offsetTop;
+
+        // Move image with mousemove
+        function onMouseMove(moveEvent) {
+          img.style.left = (moveEvent.clientX - offsetX) + 'px';
+          img.style.top  = (moveEvent.clientY - offsetY) + 'px';
+        }
+
+        // Attach mousemove listener to the document
+        document.addEventListener('mousemove', onMouseMove);
+
+        // Once mouse is released, remove the listeners
+        function onMouseUp() {
+          document.removeEventListener('mousemove', onMouseMove);
+          document.removeEventListener('mouseup', onMouseUp);
+        }
+        document.addEventListener('mouseup', onMouseUp);
+      });
+    });
+  </script>
+</body>
+</html>

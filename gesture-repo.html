@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>a-of-a-k</title>
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+  </head>
+
+  <style>
+    body{
+        background-size: 4vw 4vw; /* Set the size of the grid */
+   
+        background-image:
+    linear-gradient(to right, #F25C05 0.01px, transparent 1px),
+    linear-gradient(to bottom, #F25C05 0.01px, transparent 1px);
+    height: 100%;
+    width: 10%;
+    }
+       
+   
+   
+  </style>
+
+
+<main>
+  
+   
+    
+  <section style = " 
+    z-index: 2; ">
+<a href="./index.html"><button class="btn" >⇠</button></a>
+</section>
+
+<div class="panel-container">
+    <div class="filter-panel">
+        <!-- Each button toggles a specific filter, indicated by data-filter -->
+        <div 
+          class="filter-button" 
+          data-filter="pinch">
+          PINCH
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="sprinkle">
+          SPRINKLE
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="continuous">
+          CONTINUOUS
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="segmented">
+          SEGMENTED
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="by-hand">
+          BY HAND
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="by-tool">
+          BY TOOL
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="segmented">
+          SEGMENTED
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="by-hand">
+          BY HAND
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="rice">
+          RICE
+        </div>
+        <div 
+        class="filter-button" 
+        data-filter="alt-material">
+         ALT MATERIAL
+        </div>
+        <div 
+        class="filter-button" 
+        data-filter="colored">
+         COLORED
+        </div>
+        <div 
+        class="filter-button" 
+        data-filter="colored">
+         WHITE
+        </div>
+
+
+        <div class="slider-panel">
+            <label for="sizeSlider">VISUAL SIZE</label>
+            <input 
+              type="range" 
+              id="sizeSlider" 
+              min="80" 
+              max="360" 
+              value="110" 
+              step="1"
+            />
+          </div>
+        
+      </div>
+</div>
+
+
+
+    <h2>ACTIONS</h2>
+    <br>
+    <br>
+
+   
+    <!-- <div class="page-boundary"></div> -->
+
+  <!-- Images (we'll place them randomly with JS) -->
+  <video src="./assets/actions/gesture-vids/1.mp4" class="draggable tool pinch-release color"  autoplay loop></video>
+  <video src="./assets/actions/gesture-vids/2.mp4" class="draggable tool"  autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/3.mp4" class="draggable color" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/4.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/5.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/6.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/7.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/8.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/9.mp4" class="draggable" autoplay loop></video>
+  <video src="./assets/actions/gesture-vids/10.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/11.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/12.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/13.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/14.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/15.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/16.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/17.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/18.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/19.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/20.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/21.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/22.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/23.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/24.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/25.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/26.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/27.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/28.mp4" class="draggable" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/29.mp4" class="draggable" autoplay  loop></video>
+
+  <!-- Images (we'll place them randomly with JS) -->
+  <img src="./assets/actions/gesture-vids/ 1.png"   class="draggable">
+  <img src="./assets/actions/gesture-vids/ 2.png"   class="draggable">
+  <img src="./assets/actions/gesture-vids/ 3.png"   class="draggable">
+  <img src="./assets/actions/gesture-vids/ 4.png"   class="draggable">
+  <img src="./assets/actions/gesture-vids/ 5.png"   class="draggable">
+  <img src="./assets/actions/gesture-vids/ 6.png"   class="draggable">
+  
+
+
+  
+ 
+
+
+ 
+  
+
+
+
+  <!-- <section id="row" class="fixedonscreen" style="top:0%; 
+  left:0%; height: 100%; padding-top: 2rem;">
+  <div class="row">
+  
+      <a href="./index.html"><button class="btn" >⇠</button></a>
+    
+  </div>
+  </section> -->
+
+  
+</main>
+
+<script>
+    window.addEventListener('DOMContentLoaded', () => {
+      const draggableItems = document.querySelectorAll('.draggable');
+      const filterButtons  = document.querySelectorAll('.filter-button');
+      const sizeSlider     = document.getElementById('sizeSlider');
+
+      // 1) RANDOM PLACEMENT & DRAG SETUP
+      draggableItems.forEach(item => {
+        // Prevent default browser drag
+        item.addEventListener('dragstart', e => e.preventDefault());
+
+        // Random placement within the viewport
+        const maxX = window.innerWidth - item.offsetWidth;
+        const maxY = window.innerHeight - item.offsetHeight;
+        item.style.left = Math.random() * maxX + 'px';
+        item.style.top  = Math.random() * maxY + 'px';
+
+        let offsetX = 0, offsetY = 0;
+
+        // DRAG HANDLERS
+        item.addEventListener('mousedown', e => {
+          offsetX = e.clientX - item.offsetLeft;
+          offsetY = e.clientY - item.offsetTop;
+
+          function onMouseMove(moveEvent) {
+            item.style.left = (moveEvent.clientX - offsetX) + 'px';
+            item.style.top  = (moveEvent.clientY - offsetY) + 'px';
+          }
+          document.addEventListener('mousemove', onMouseMove);
+
+          function onMouseUp() {
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+          }
+          document.addEventListener('mouseup', onMouseUp);
+        });
+      });
+
+      // 2) FILTER LOGIC
+      let activeFilters = []; // store currently active filter classes
+
+      function applyFilters() {
+        draggableItems.forEach(item => {
+          // If no filters selected, show everything
+          if (activeFilters.length === 0) {
+            item.classList.remove('hidden');
+            return;
+          }
+          // Otherwise show only if item has ALL active filters
+          const itemClasses = Array.from(item.classList);
+          const hasAll = activeFilters.every(f => itemClasses.includes(f));
+          if (hasAll) {
+            item.classList.remove('hidden');
+          } else {
+            item.classList.add('hidden');
+          }
+        });
+      }
+
+      filterButtons.forEach(button => {
+        button.addEventListener('click', () => {
+          const filterClass = button.getAttribute('data-filter');
+          if (activeFilters.includes(filterClass)) {
+            // Remove filter
+            activeFilters = activeFilters.filter(f => f !== filterClass);
+            button.classList.remove('active');
+          } else {
+            // Add filter
+            activeFilters.push(filterClass);
+            button.classList.add('active');
+          }
+          applyFilters();
+        });
+      });
+
+      // 3) SLIDER FOR SIZE ADJUSTMENT
+      sizeSlider.addEventListener('input', (e) => {
+        const newSize = e.target.value; // in px
+        // Update width for all draggable items
+        draggableItems.forEach(item => {
+          item.style.width = newSize + 'px';
+          item.style.height = 'auto'; // maintain aspect ratio
+        });
+      });
+    });
+  </script>

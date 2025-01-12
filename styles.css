@@ -72,7 +72,8 @@ alt{
     Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
 
     /* font-family: 'Formula Condensed'; */
-   
+    color: #F25C05;
+    background-color: #fff;
    font-size: 1.2vw;
    padding-bottom:0vw;
     
@@ -136,14 +137,14 @@ color: #fff;
     flex-direction: column;
     flex: 1;
     height: fit-content;
-    width: 100%;
+    width: 30%;
   }
 
   .textbox{
     background-color: #fff;
     padding: 3rem;
     border: 2px solid #F25C05;
-    border-radius: 20px;
+    border-radius: 40px;
   }
   
   
@@ -213,8 +214,8 @@ color: #fff;
     position: absolute; 
     top: 100px;         /* initial position: adjust as needed */
     left: 100px;        /* initial position: adjust as needed */
-    width: 110px;  /* Adjust width to your liking */
-    height: 110px; /* Adjust height to your liking */
+    width: 120px;  /* Adjust width to your liking */
+    height: 120px; /* Adjust height to your liking */
     border: 2px solid white;
     cursor: grab; 
     user-select: none;  /* prevent text selection when dragging */
@@ -233,8 +234,8 @@ color: #fff;
    /* Draggable videos */
    video.draggable {
     position: absolute;
-    width: 110px;  /* Adjust width to your liking */
-    height: 110px; /* Adjust height to your liking */
+    width: 120px;  /* Adjust width to your liking */
+    height: 120px; /* Adjust height to your liking */
     border: 2px solid white;
     cursor: grab;
     user-select: none; /* Prevent accidental text selection while dragging */
@@ -243,6 +244,21 @@ color: #fff;
   /* Show "grabbing" cursor on mousedown */
   video.draggable:active {
     cursor: grabbing;
+  }
+
+  .info-container {
+    position: fixed;
+    top: 50%;
+  width: 20%;
+    left: 5%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 10px;
+
+    z-index: 0;
   }
 
   .panel-container {
@@ -317,6 +333,36 @@ color: #fff;
       width: 120px;
     }
 
+
+    .chat-bubble {
+      position: relative;         /* Allow for the pseudo-element positioning */
+      display: inline-block;      /* Ensures the bubble wraps the content */
+      max-width: 250px;           /* Optional max-width */
+      padding: 1rem;              /* Padding for the text */
+      background: #3f3f24;        /* Light yellow background for the bubble */
+      border-radius: 8px;         /* Rounded corners */
+      margin: 2rem;               /* Add some spacing around the bubble */
+      box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional shadow for effect */
+    }
+    
+    /* Triangle on the left, flush with the top */
+    .chat-bubble::before {
+      content: "";
+      position: absolute;
+      top: 10px;                  /* Align the triangle with the top padding */
+      left: -40px;                /* Move the triangle outside the bubble */
+      width: 0;                   /* Triangle width is created by borders */
+      height: 0;
+      border-top: 10px solid transparent;
+      border-bottom: 10px solid transparent;
+      border-right: 10px solid #6c6c46; /* Same color as the bubble background */
+    }
+    
+    
+
+
+
+
   .container{
     
     min-height: 100vh;
@@ -360,5 +406,191 @@ color: #fff;
     flex: auto; 
     /* Responsively handle spacing between images and size*/ 
 }
+
+
+canvas {
+  vertical-align: top;
+}
+.controls {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  background: rgba(255, 255, 255, 0.8);
+  padding: 10px;
+  border-radius: 5px;
+  z-index: 100;
+}
+.controls label {
+  display: block;
+  margin: 5px 0;
+}
+.controls input {
+  width: 100%;
+}
+
+
+.image-text-section {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem; /* Space between the image and text */
+  /* background-color: #fff; */
+    padding: 3rem;
+    /* border: 2px solid #F25C05;
+    border-radius: 40px; */
+  width: 87%;
+  margin-top: 3rem;
+  position: relative; /* Ensure positioning for overlap */
+}
+
+.image-container {
+  flex: 1; /* Take up equal space as the text */
+  position: relative; /* Ensure positioning for overlap */
+}
+
+.image-container img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px; /* Optional: Rounded corners */
+  box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1); /* Optional: Shadow effect */
+}
+
+.text-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 1rem;
+  margin-left: -8rem; /* Move text left to overlap with the image */
+  margin-top: -9rem;
+  z-index: 1; /* Ensure text appears above the image */
+  
+  padding: 1.5rem; /* Add padding for better readability */
+  
+}
+
+.text-container h2 {
+  font-family: 'Formula Condensed', sans-serif;
+ 
+  /* margin-bottom: 1rem; */
+}
+
+/* .text-container p {
+  font-family: Arial, sans-serif;
+  font-size: 1rem;
+  color: #555;
+  line-height: 1.5;
+  margin-bottom: 1rem;
+} */
+
+.read-more-btn {
+  font-family: 'Formula Condensed', sans-serif;
+  font-size: 1.5rem;
+  padding: 0.5rem 1rem;
+  border: 2px solid #f25c05;
+  background: #fff;
+  color: #f25c05;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s, color 0.3s;
+  width: 30%;
+}
+
+.read-more-btn:hover {
+  background-color: #f25c05;
+  color: #fff;
+}
+
+.interview-container{
+  /* position: fixed; */
+    top: 50%;
+  width: 60%;
+    left: 5%;
+    transform: translate(10%, -20%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 10px;
+    margin-top: 0;
+
+    z-index: 0;
+}
+
+.interview-container h3{
+  background-color: #F25C05;
+  color: #fff;
+  padding: 0.5rem;
+  margin-bottom: 0rem;
+  border-radius: 1rem;
+  border-color: #fff;
+}
+
+.interview-container p{
+  padding-top: 0rem;
+  margin-top: -1rem;
+  background-color: #F25C05;
+  color: #fff;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.interviewee-container{
+  /* position: fixed; */
+    top: 50%;
+  width: 60%;
+    left: 5%;
+    transform: translate(20%, -16%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 10px;
+
+    z-index: 0;
+}
+
+.interviewee-container h3{
+  background-color: #FFF;
+  color: #f25c05;
+  padding: 0.5rem;
+  margin-top: 1rem;
+  border-radius: 1rem;
+  border: 2px solid #F25C05;
+}
+
+.interviewee-container p{
+  padding-top: 0rem;
+  margin-top: -1rem;
+  line-height: 2rem;
+  background-color: #fff;
+  color: #f25c05;
+  padding: 1rem;
+  font-size: 1.5rem;
+}
+
+.quote-callout{
+  width: 60%;
+  margin-top: -3rem;
+  margin-bottom: 6rem;
+  background-color: #FFF;
+}
+
+.quote-callout h2{
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+  font-weight:400;
+}
+
+.quote-callout .quotes{
+  font-family: 'Formula Condensed', sans-serif;
+}
+
+
+
+
+
+
 
   

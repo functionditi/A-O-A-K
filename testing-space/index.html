@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gamepad Controller</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    body {
+  font-family: Arial, sans-serif;
+  text-align: center;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f0f0;
+}
+
+h1 {
+  color: #333;
+}
+
+p {
+  color: #666;
+}
+
+  </style>
+</head>
+<body>
+  <h1>Gamepad Controller Test</h1>
+  <p id="status">Press any button on your controller to connect.</p>
+  <script src="script.js"></script>
+</body>
+</html>
+
+
+<script>
+    const status = document.getElementById('status');
+
+// Poll for gamepad input
+function pollGamepads() {
+  const gamepads = navigator.getGamepads();
+  for (const gamepad of gamepads) {
+    if (gamepad) {
+      status.textContent = `Connected: ${gamepad.id}`;
+      handleGamepadInput(gamepad);
+    }
+  }
+  requestAnimationFrame(pollGamepads);
+}
+
+// Handle button presses and joystick movements
+function handleGamepadInput(gamepad) {
+  const buttons = gamepad.buttons;
+  const axes = gamepad.axes;
+
+  // Display button states
+  buttons.forEach((button, index) => {
+    if (button.pressed) {
+      console.log(`Button ${index} is pressed`);
+    }
+  });
+
+  // Display joystick movements
+  console.log(`Left joystick: X=${axes[0].toFixed(2)}, Y=${axes[1].toFixed(2)}`);
+  console.log(`Right joystick: X=${axes[2].toFixed(2)}, Y=${axes[3].toFixed(2)}`);
+}
+
+// Listen for gamepad connection
+window.addEventListener('gamepadconnected', (event) => {
+  status.textContent = `Gamepad connected: ${event.gamepad.id}`;
+  console.log(`Gamepad connected at index ${event.gamepad.index}: ${event.gamepad.id}`);
+  pollGamepads();
+});
+
+// Listen for gamepad disconnection
+window.addEventListener('gamepaddisconnected', (event) => {
+  status.textContent = 'Gamepad disconnected.';
+  console.log(`Gamepad disconnected at index ${event.gamepad.index}`);
+});
+
+</script>

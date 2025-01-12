@@ -30,21 +30,55 @@
     
   <section style = " 
     z-index: 2; ">
-<a href="./index.html"><button class="btn" >⇠</button></a>
+
 </section>
+
+<div class="info-container">
+    <a href="./index.html"><button class="btn" >⇠</button></a>
+<h2>ACTIONS / POSTURE / GESTURE</h2>
+    <p>
+        Sweeping wrists, crouched legs and bent spines. Bangles clinking, fingers dusted with powdered rice. 
+    <br><br>
+        In these subtleties lies a daily ritual, a way of life for many Indian women. The creation of a rangoli.
+    <br><br>
+        In every gesture, a story unfolds — the body sings in soft arcs and angled lines. Actions become poetry when intention and motion intertwine. 
+        The slow, sacred art of being alive.
+    <br><br><br>
+        <b>
+            Filter through the videos to look into the various nuances of gestures, materials and ways in which rangolis can be drawn.
+        </b>
+    </p>
+       
+
+</div>
 
 <div class="panel-container">
     <div class="filter-panel">
         <!-- Each button toggles a specific filter, indicated by data-filter -->
         <div 
           class="filter-button" 
-          data-filter="pinch">
-          PINCH
+          data-filter="pinched">
+          PINCHED
         </div>
         <div 
           class="filter-button" 
           data-filter="sprinkle">
-          SPRINKLE
+          SPRINKLED
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="drawn">
+          DRAWN
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="standing">
+          STANDING / BENDING
+        </div>
+        <div 
+          class="filter-button" 
+          data-filter="crouching">
+          CROUCHING / SITTING
         </div>
         <div 
           class="filter-button" 
@@ -68,16 +102,6 @@
         </div>
         <div 
           class="filter-button" 
-          data-filter="segmented">
-          SEGMENTED
-        </div>
-        <div 
-          class="filter-button" 
-          data-filter="by-hand">
-          BY HAND
-        </div>
-        <div 
-          class="filter-button" 
           data-filter="rice">
           RICE
         </div>
@@ -93,7 +117,7 @@
         </div>
         <div 
         class="filter-button" 
-        data-filter="colored">
+        data-filter="white">
          WHITE
         </div>
 
@@ -105,7 +129,7 @@
               id="sizeSlider" 
               min="80" 
               max="360" 
-              value="110" 
+              value="120" 
               step="1"
             />
           </div>
@@ -115,51 +139,60 @@
 
 
 
-    <h2>ACTIONS</h2>
-    <br>
-    <br>
+   
 
    
     <!-- <div class="page-boundary"></div> -->
 
-  <!-- Images (we'll place them randomly with JS) -->
-  <video src="./assets/actions/gesture-vids/1.mp4" class="draggable tool pinch-release color"  autoplay loop></video>
-  <video src="./assets/actions/gesture-vids/2.mp4" class="draggable tool"  autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/3.mp4" class="draggable color" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/4.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/5.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/6.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/7.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/8.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/9.mp4" class="draggable" autoplay loop></video>
-  <video src="./assets/actions/gesture-vids/10.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/11.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/12.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/13.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/14.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/15.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/16.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/17.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/18.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/19.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/20.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/21.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/22.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/23.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/24.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/25.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/26.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/27.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/28.mp4" class="draggable" autoplay  loop></video>
-  <video src="./assets/actions/gesture-vids/29.mp4" class="draggable" autoplay  loop></video>
+  <!-- Videos -->
+  <video src="./assets/actions/gesture-vids/1.mp4" class="draggable by-tool rice segmented colored"  autoplay loop></video>
+  <video src="./assets/actions/gesture-vids/2.mp4" class="draggable drawn by-tool crouching sprinkle colored segmented rice"  autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/3.mp4" class="draggable pinched  by-hand rice white segmented" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/4.mp4" class="draggable pinched crouching segmented by-hand rice white" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/5.mp4" class="draggable pinched crouching segmented by-hand rice white" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/6.mp4" class="draggable drawn rice white by-tool segmented crouching" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/7.mp4" class="draggable alt-material by-hand rice white colored segmented crouching" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/8.mp4" class="draggable standing white rice pinched by-hand" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/9.mp4" class="draggable by-hand drawn colored rice crouching" autoplay loop></video>
+  <video src="./assets/actions/gesture-vids/10.mp4" class="draggable by-tool drawn alt-material white" autoplay  loop></video>
 
-  <!-- Images (we'll place them randomly with JS) -->
-  <img src="./assets/actions/gesture-vids/ 1.png"   class="draggable">
-  <img src="./assets/actions/gesture-vids/ 2.png"   class="draggable">
-  <img src="./assets/actions/gesture-vids/ 3.png"   class="draggable">
-  <img src="./assets/actions/gesture-vids/ 4.png"   class="draggable">
-  <img src="./assets/actions/gesture-vids/ 5.png"   class="draggable">
-  <img src="./assets/actions/gesture-vids/ 6.png"   class="draggable">
+  <video src="./assets/actions/gesture-vids/11.mp4" class="draggable drawn alt-material by-tool colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/12.mp4" class="draggable pinched crouching by-hand colored rice" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/13.mp4" class="draggable pinched crouching by-hand white colored rice" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/14.mp4" class="draggable pinched crouching by-hand white colored rice" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/15.mp4" class="draggable by-tool sprinkle rice colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/16.mp4" class="draggable by-tool sprinkle rice colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/17.mp4" class="draggable by-hand sprinkle pinched alt-material colored rice crouching" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/18.mp4" class="draggable by-tool rice white crouching drawn" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/19.mp4" class="draggable by-hand pinched colored rice crouching standing" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/20.mp4" class="draggable by-tool rice white standing drawn alt-material" autoplay  loop></video>
+
+  <video src="./assets/actions/gesture-vids/21.mp4" class="draggable drawn by-tool colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/22.mp4" class="draggable pinched  by-hand rice white " autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/23.mp4" class="draggable pinched by-hand colored crouching rice" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/24.mp4" class="draggable standing rice colored pinched by-hand" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/25.mp4" class="draggable by-tool alt-material colored drawn" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/26.mp4" class="draggable by-tool colored rice sprinkle" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/27.mp4" class="draggable by-tool alt-material drawn colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/28.mp4" class="draggable by-tool alt-material drawn colored" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/29.mp4" class="draggable by-hand pinched colored continuous crouching" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/30.mp4" class="draggable by-tool sprinkle colored rice" autoplay  loop></video>
+  <video src="./assets/actions/gesture-vids/31.mp4" class="draggable by-tool sprinkle white rice alt-material" autoplay  loop></video>
+    <video src="./assets/actions/gesture-vids/32.mp4" class="draggable by-tool white rice drawn" autoplay  loop></video>
+
+  <!-- Images  -->
+  <img src="./assets/actions/gesture-vids/ 1.png"   class="draggable pinched standing by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 2.png"   class="draggable pinched  by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 3.png"   class="draggable pinched  by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 4.png"   class="draggable pinched crouching  by-hand rice colored">
+  <img src="./assets/actions/gesture-vids/ 5.png"   class="draggable pinched crouching  by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 6.png"   class="draggable pinched crouching  by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 7.png"   class="draggable pinched crouching  by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 8.png"   class="draggable pinched crouching by-hand rice colored">
+  <img src="./assets/actions/gesture-vids/ 9.png"   class="draggable pinched crouching by-hand rice white">
+  <img src="./assets/actions/gesture-vids/ 10.png"   class="draggable pinched crouching by-hand rice colored">
+  <img src="./assets/actions/gesture-vids/ 11.png"   class="draggable pinched crouching by-hand rice white">
+  
   
 
 
@@ -195,11 +228,13 @@
         // Prevent default browser drag
         item.addEventListener('dragstart', e => e.preventDefault());
 
+        let boundary=50;
+
         // Random placement within the viewport
-        const maxX = window.innerWidth - item.offsetWidth;
-        const maxY = window.innerHeight - item.offsetHeight;
-        item.style.left = Math.random() * maxX + 'px';
-        item.style.top  = Math.random() * maxY + 'px';
+        const maxX = window.innerWidth - item.offsetWidth - (boundary*2);
+        const maxY = window.innerHeight - item.offsetHeight - (boundary*2);
+        item.style.left = (boundary+ Math.random() * maxX) + 'px';
+        item.style.top  = (boundary+ Math.random() * maxY) + 'px';
 
         let offsetX = 0, offsetY = 0;
 

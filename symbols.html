@@ -1,240 +1,232 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>a-of-a-k</title>
     <link rel="stylesheet" type="text/css" href="./styles.css" />
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
-  <style>
-    body{
-          background-color: #fff;
-      
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
+    <style>
+      body {
+        background-color: #fff;
+        margin: 0;
+        overflow: hidden;
+      }
+      canvas {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1; /* Push canvas behind HTML elements */
       }
 
-      canvas {
-  vertical-align: middle;
-  left: 50%;
-  position: fixed;
-  transform: translate(-50%, 0%);
-}
+      p, h2{
+        background-color: #e4c753;
+        color: #fff;
+      }
 
-.slider-panel{
-  position: fixed;
-  left: 90%;
-  top: 10%;
-  transform: translate(-50%, 0%);
-}
-  </style>
-
-
+      .info-container{
+        background-color: #e4c753;
+        border-radius: 10px;
+        padding: 2rem;
+        border: 2px solid #f25c05;
+    
+      }
+      
+      .info-container .btn {
+        padding: 8px 12px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .parameters {
+        position: fixed;
+        top: 50%;
+        right: 3%;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.8);
+        padding: 10px 15px;
+        border-radius: 5px;
+        font-family: sans-serif;
+        color: #f25c05;
+      }
+    </style>
   </head>
-
-
   <body>
     <div class="info-container">
-      <a href="./index.html"><button class="btn" >⇠</button></a>
-  <h2>SYMBOLS / CYMATICS</h2>
+      <a href="./index.html"><button class="btn">⇠go back</button></a>
+      <h2>CYMATICS</h2>
       <p>
-          Pulli Kolams can be constellations.
-      <br><br>
-          Geometry whispers its truths: balance, continuity, and the symmetrical that arises from the simplest of forms. Lines snaking around dots.
-      <br><br>
-
-      <b>
-        To use this, connect a Nintendo Pro Controller.
-      </b>
-
-        
-      
+        Pulli Kolams can be constellations.
+        <br /><br />
+        Kolams may have roots in cymatic principles—resonant frequencies producing geometric patterns—by using a digital simulation of Chladni figures. This sound-reactive Chaldni pattern is a visual entry point for thinking about how “symbols” in kolam might be deeply tied to rhythmic or harmonic resonances in both nature and tradition.
       </p>
-         
-  
-  </div>
-    <div class="controls slider-panel">
-      <label for="mSlider">m</label>
-          <input name="mSlider" type="range" id="mSlider" min="1" max="16" step="1" value="8">
-          <label for="nSlider">n</label>
-          <input name="nSlider" type="range" id="nSlider" min="1" max="16" step="1" value="4">
-          <label for="aSlider">a</label>
-          <input name="aSlider" type="range" id="aSlider" min="-2" max="2" step="1" value="1">
-          <label for="bSlider">b</label>
-          <input name="bSlider" type="range" id="bSlider" min="-2" max="2" step="1" value="1">
-          <label for="vSlider">vibration strength:</label>
-        <input name="vSlider" type="range" id="vSlider" min="0.01" max="0.1" step="0.01" value="0.02"> 
-        <label for="numSlider">number of particles:</label>
-        <input name="numSlider" type="range" id="numSlider" min="2000" max="40000" step="2000" value="30000">
-    </div> 
+    </div>
+    <div class="parameters" id="parameters">
+      m: -<br> n: -<br> a: -<br> b: -
+    </div>
     <main id="sketch-container"></main>
-  </body>
+    <script>
+      let particles, m, n, a, b, v;
+      let particleSize = 8; // Global particle size
+      let minWalk = 0.002;
+      let mic, fft;
+      let volume;
 
-  </html>
+      // Settings: number of particles (canvas size is now full screen)
+      const settings = {
+        nParticles: 10000,
+        drawHeatmap: false,
+      };
 
+      const pi = 3.1415926535;
 
+      // Chladni 2D closed-form solution (returns a value between -1 and 1)
+      const chladni = (x, y, a, b, m, n) =>
+        a * sin(pi * n * x) * sin(pi * m * y) +
+        b * sin(pi * m * x) * sin(pi * n * y);
 
-<script>
-  let particles, sliders, m, n, a, b;
+      const DOMinit = () => {
+        // Create a full-screen canvas using windowWidth and windowHeight
+        let canvas = createCanvas(windowWidth, windowHeight);
+        canvas.parent("sketch-container");
+      };
 
-// vibration strength params
-let A = 0.02;
-let minWalk = 0.002;
-let mic;
-let volume;
+      const setupParticles = () => {
+        particles = [];
+        for (let i = 0; i < settings.nParticles; i++) {
+          particles.push(new Particle());
+        }
+      };
 
+      class Particle {
+        constructor() {
+          this.x = random(0, 1);
+          this.y = random(0, 1);
+          this.updateOffsets();
+        }
 
+        move() {
+          // Calculate the Chladni value for this particle
+          let eq = chladni(this.x, this.y, a, b, m, n);
+          // Determine movement amplitude
+          let amplitude = v * abs(eq);
+          if (amplitude < minWalk) amplitude = minWalk;
+          this.x += random(-amplitude, amplitude);
+          this.y += random(-amplitude, amplitude);
+          this.updateOffsets();
+        }
 
-const settings = {
-  nParticles : 20000,
-  canvasSize : [600, 600],
-  drawHeatmap : false
-}
+        updateOffsets() {
+          // Constrain within the unit square and convert to screen space
+          this.x = constrain(this.x, 0, 1);
+          this.y = constrain(this.y, 0, 1);
+          this.xOff = width * this.x;
+          this.yOff = height * this.y;
+        }
 
-const pi = 3.1415926535;
-
-// chladni 2D closed-form solution - returns between -1 and 1
-const chladni = (x, y, a, b, m, n) => 
-  a * sin(pi*n*x) * sin(pi*m*y) + b * sin(pi*m*x) * sin(pi*n*y);
-
-/* Initialization */
-
-const DOMinit = () => {
-  let canvas = createCanvas(...settings.canvasSize);
-  canvas.parent('sketch-container');
-
-  // sliders
-  sliders = {
-    m : select('#mSlider'), // freq param 1
-    n : select('#nSlider'), // freq param 2
-    a : select('#aSlider'), // freq param 3
-    b:  select('#bSlider'), // freq param 4
-    v : select('#vSlider'), // velocity
-    num : select('#numSlider'), // number
-  }
-}
-
-const setupParticles = () => {
-  // particle array
-  particles = [];
-  for (let i = 0; i < settings.nParticles; i++) {
-    particles[i] = new Particle();
-  }
-}
-
-
-/* Particle dynamics */
-
-class Particle {
-
-  constructor() {
-    this.x = random(0,1);
-    this.y = random(0,1);
-    this.stochasticAmplitude;
-
-    // this.color = [random(100,255), random(100,255), random(100,255)];
-    
-    this.updateOffsets();
-  }
-
-  move() {
-    // what is our chladni value i.e. how much are we vibrating? (between -1 and 1, zeroes are nodes)
-    let eq = chladni(this.x, this.y, a, b, m, n);
-
-    // set the amplitude of the move -> proportional to the vibration
-    this.stochasticAmplitude = v * abs(eq);
-
-    if (this.stochasticAmplitude <= minWalk) this.stochasticAmplitude = minWalk;
-
-    // perform one random walk
-    this.x += random(-this.stochasticAmplitude, this.stochasticAmplitude);
-    this.y += random(-this.stochasticAmplitude, this.stochasticAmplitude);
- 
-    this.updateOffsets();
-  }
-
-  updateOffsets() {
-    // handle edges
-    if (this.x <= 0) this.x = 0;
-    if (this.x >= 1) this.x = 1;
-    if (this.y <= 0) this.y = 0;
-    if (this.y >= 1) this.y = 1;
-
-    // convert to screen space
-    this.xOff = width * this.x; // (this.x + 1) / 2 * width;
-    this.yOff = height * this.y; // (this.y + 1) / 2 * height;
-  }
-
-  show() {
-    // stroke(...this.color);
-    point(this.xOff, this.yOff)
-  }
-}
-
-const moveParticles = () => {
-  let movingParticles = particles.slice(0, N);
-
-  // particle movement
-  for(let particle of movingParticles) {
-    particle.move();
-    particle.show();
-  }
-}
-
-const updateParams = () => {
-  m = sliders.m.value();
-  n = map(volume, 0, 100, 1, 16);
-  a = sliders.a.value();
-  b = sliders.b.value()
-  v = sliders.v.value();
-  N = sliders.num.value();
-}
-
-const drawHeatmap = () => {
-  // draw the function heatmap in the background (not working)
-  if (settings.drawHeatmap) {
-    let res = 3;
-    for (let i = 0; i <= width; i+=res) {
-      for (let j = 0; j <= height; j+=res) {
-        let eq = chladni(i/width, j/height, a, b, m, n);
-        strokeWeight(1);
-        stroke();
-        fill("#f25c05");
-        square(i, j, res);
+        show() {
+          noStroke();
+          fill("#f25c05");
+          ellipse(this.xOff, this.yOff, particleSize, particleSize);
+        }
       }
-    }
-  }
-}
 
-const wipeScreen = () => {
-  background("#fFF");
-  stroke("#f25c05");
-}
+      const moveParticles = () => {
+        for (let particle of particles) {
+          particle.move();
+          particle.show();
+        }
+      };
 
+      const drawHeatmap = () => {
+        if (settings.drawHeatmap) {
+          let res = 3;
+          for (let i = 0; i <= width; i += res) {
+            for (let j = 0; j <= height; j += res) {
+              let eq = chladni(i / width, j / height, a, b, m, n);
+              strokeWeight(1);
+              stroke();
+              fill("#f25c05");
+              square(i, j, res);
+            }
+          }
+        }
+      };
 
-/* Timing */
+      const wipeScreen = () => {
+        background("#FFF");
+        stroke("#f25c05");
+      };
 
-// run at DOM load
-function setup() {
-  DOMinit();
-  setupParticles();
-  mic = new p5.AudioIn();
-  
-}
-// run each frame
-function draw() {
-  volume = mic.getLevel()*1000;
-  
-  wipeScreen();
-  updateParams();
-  drawHeatmap();
-  moveParticles();
-}
+      // p5.js setup
+      function setup() {
+        DOMinit();
+        setupParticles();
 
-function keyPressed(){
-  mic.start();
-  console.log(volume);
-}
- 
-</script>
+        // Initialize microphone and FFT analysis
+        mic = new p5.AudioIn();
+        mic.start();
+        fft = new p5.FFT();
+        fft.setInput(mic);
+
+        // Set default vibration strength for particle movement
+        v = 0.03;
+      }
+
+      // p5.js draw loop
+      function draw() {
+        // Get overall volume and amplify it
+        volume = mic.getLevel() * 1000;
+        // Map overall volume to m (ensuring it's an integer between 1 and 16)
+        m = int(map(volume, 0, 0.1, 1, 16));
+
+        // Analyze the sound's frequency spectrum
+        let spectrum = fft.analyze();
+
+        // Extract frequency components:
+        let bass = fft.getEnergy("bass");         // Low-frequency energy
+        let treble = fft.getEnergy("treble");       // High-frequency energy
+        let spectralCentroid = fft.getCentroid();   // "Brightness" of the sound
+
+        // Map frequency-based values to the other Chladni parameters:
+        n = int(map(bass, 0, 255, 1, 16));         // n controlled by bass energy
+        a = map(treble, 0, 255, -2, 2);             // a controlled by treble energy
+        b = map(spectralCentroid, 0, 8000, -2, 2);   // b controlled by spectral centroid
+
+        wipeScreen();
+        drawHeatmap();
+        moveParticles();
+
+        // Update parameter display text
+        let paramsDiv = document.getElementById("parameters");
+        if (paramsDiv) {
+          paramsDiv.innerHTML = `
+            m: ${m} <br>
+            n: ${n} <br>
+            a: ${a.toFixed(2)} <br>
+            b: ${b.toFixed(2)}
+          `;
+        }
+      }
+
+      // Adjust canvas size when the window is resized
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+
+      // Optional: adjust particle count via key presses
+      function keyPressed() {
+        if (key === "+") {
+          particles.push(new Particle());
+        } else if (key === "-") {
+          if (particles.length > 1) {
+            particles.pop();
+          }
+        }
+      }
+    </script>
+  </body>
+</html>

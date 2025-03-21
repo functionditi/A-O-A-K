@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolam + Gamepad (Nintendo Switch)</title>
+    <script src="libraries/p5/p5.js" type="text/javascript"></script>
+    <script src="libraries/p5/p5.dom.js" type="text/javascript"></script>
+    <script src="libraries/p5/p5.sound.js" type="text/javascript"></script>
+    <link rel="stylesheet" type="text/css" href="./styles.css" />
+    <style>
+      body {
+        padding: 0;
+        margin: 0;
+      }
+      .controls.slider-panel {
+        position: absolute;
+        top: 0;
+        left: 0;
+        padding: 10px;
+        background: rgba(255, 255, 255, 0.8);
+      }
+      label {
+        margin-right: 20px;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- <div class="info-container">
+      <a href="./index.html"><button class="btn" >⇠</button></a>
+  <h2>SYSTEMS / PATTERNS</h2>
+      <p>
+          Pulli Kolams can be constellations.
+      <br><br>
+          Geometry whispers its truths: balance, continuity, and the symmetrical that arises from the simplest of forms. Lines snaking around dots.
+      <br><br>
+
+      <b>
+        To use this, connect a Nintendo Pro Controller.
+      </b>
+
+        
+      
+      </p>
+         
+  
+  </div> -->
+    <!-- <div class="controls slider-panel">
+      <label id="sizeSlider"
+        >Size:
+        <input
+          id="size-slider"
+          type="range"
+          min="30"
+          max="60"
+          value="45"
+        /></label>
+      <label id="marginSlider"
+        >Margin:
+        <input
+          id="margin-slider"
+          type="range"
+          min="2"
+          max="200"
+          value="5"
+        /></label>
+      <label id="tilesSlider"
+        >Tiles:
+        <input
+          id="tiles-slider"
+          type="range"
+          min="3"
+          max="20"
+          value="8"
+        /></label>
+      <label id="refreshSlider"
+        >Refresh Rate:
+        <input
+          id="refresh-slider"
+          type="range"
+          min="300"
+          max="2000"
+          value="1000"
+          step="10"
+        /></label>
+    </div> -->
+  </body>
+  <script>
+    // --------------------------------------------------
+    // KOLAM VARIABLES
+    // --------------------------------------------------
+    let link, nlink, idx, pg, bgcolor, kolam;
+    let seed = 0;
+
+    let colors = [
+      "#FEC0FF",
+      "#FFB5A2",
+      "#2C726A",
+      "#DDE379",
+      "#31A5FF",
+      "#DDE379",
+      "#FF64E9",
+      "#F25C05",
+      "#F25C05",
+      "#FFF",
+    ];
+
+    // Array to store color indices for each tile
+    let tileColors = [];
+    let tileStrokes = [];
+    let thickness=8;
+
+    
+
+    function Kolam() {
+      this.tsize = 45;
+      this.margin = 5;
+      this.tnumber = 8;
+      this.refreshRate = 1000;
+    }
+
+    // --------------------------------------------------
+    // GAMEPAD VARIABLES & FUNCTIONS
+    // --------------------------------------------------
+    let gamepadIndex = null;
+
+    // We'll keep a small "cooldown" for moving the cursor, so we don't move it
+    // continuously at high speed if the stick is held in one direction.
+    let moveCooldown = 0;
+    const moveCooldownMax = 20; // frames to wait before another move
+
+    let rightStickCooldown = 0;
+const rightStickCooldownMax = 15; // frames to wait before next parameter change
+
+    let pressedLastFrame = [];
+    let pressDuration = [];
+    // For convenience, define how many buttons we track (some controllers have more, but let's assume 10)
+    const buttonCount = 10;
+    for (let i = 0; i < buttonCount; i++) {
+      pressedLastFrame[i] = false;
+      pressDuration[i] = 0;
+    }
+
+    // Threshold for a long press (in frames)
+    const longPressThreshold = 180; // ~3 seconds @60fps
+    // Interval for repeated skipping after holding the button
+    const repeatInterval = 5; // e.g. skip color every 5 frames after threshold
+
+
+
+    // The tile cursor (selected row & column)
+    let cursorRow = 0;
+    let cursorCol = 0;
+
+
+
+    // Helper to connect gamepad
+    function onGamepadConnected(e) {
+      console.log(
+        "Gamepad connected at index %d: %s. %d buttons, %d axes.",
+        e.gamepad.index,
+        e.gamepad.id,
+        e.gamepad.buttons.length,
+        e.gamepad.axes.length
+      );
+      gamepadIndex = e.gamepad.index;
+    }
+
+    // Helper to disconnect gamepad
+    function onGamepadDisconnected(e) {
+      console.log(
+        "Gamepad disconnected from index %d: %s",
+        e.gamepad.index,
+        e.gamepad.id
+      );
+      if (gamepadIndex === e.gamepad.index) {
+        gamepadIndex = null;
+      }
+    }
+
+    function handleGamepadInput() {
+  if (gamepadIndex === null) return; // no gamepad connected
+  
+
+  const gamepads = navigator.getGamepads ? navigator.getGamepads() : [];
+  const gp = gamepads[gamepadIndex];
+  if (!gp) return;
+
+  let buttons = gp.buttons;
+  let axes = gp.axes;
+  
+  // Define a dead zone threshold:
+  const deadZone = 0.5; 
+  
+  // We only move the cursor if moveCooldown is 0
+  if (moveCooldown === 0) {
+    let xAxis = axes[0];
+    let yAxis = axes[1];
+    
+    // --- Apply dead zone to xAxis / yAxis ---
+    xAxis = (Math.abs(xAxis) < deadZone) ? 0 : xAxis;
+    yAxis = (Math.abs(yAxis) < deadZone) ? 0 : yAxis;
+    // ---------------------------------------
+    
+    // Move horizontally
+    if (xAxis < -0.5) {
+      cursorCol = max(cursorCol - 1, 0);
+      moveCooldown = moveCooldownMax;
+    } else if (xAxis > 0.5) {
+      cursorCol = min(cursorCol + 1, kolam.tnumber - 1);
+      moveCooldown = moveCooldownMax;
+    }
+    
+    // Move vertically
+    if (yAxis < -0.5) {
+      cursorRow = max(cursorRow - 1, 0);
+      moveCooldown = moveCooldownMax;
+    } else if (yAxis > 0.5) {
+      cursorRow = min(cursorRow + 1, kolam.tnumber - 1);
+      moveCooldown = moveCooldownMax;
+    }
+  } else {
+    moveCooldown--;
+  }
+
+  if (rightStickCooldown === 0) {
+    // axes[2] = right joystick X; axes[3] = right joystick Y
+    let xAxis2 = axes[2];
+    let yAxis2 = axes[3];
+
+    // Apply dead zone
+    xAxis2 = (Math.abs(xAxis2) < deadZone) ? 0 : xAxis2;
+    yAxis2 = (Math.abs(yAxis2) < deadZone) ? 0 : yAxis2;
+
+    //
+    // Change number of tiles (xAxis2)
+    //
+    if (xAxis2 < -0.5) {
+      // Decrease tile count
+      kolam.tnumber = max(3, kolam.tnumber - 1);
+      background("#FFF")
+      setupTiles();             // Rebuild after changing tnumber
+      rightStickCooldown = rightStickCooldownMax;
+    } else if (xAxis2 > 0.5) {
+      // Increase tile count
+      kolam.tnumber = min(20, kolam.tnumber + 1);
+      background("#FFF")
+      setupTiles();
+      rightStickCooldown = rightStickCooldownMax;
+    }
+
+    //
+    // Change tile size (yAxis2)
+    //
+    if (yAxis2 < -0.5) {
+      // Decrease tile size
+      kolam.tsize = max(30, kolam.tsize - 1);
+      background("#FFF")
+      setupTiles();             // Rebuild after changing tile size
+      rightStickCooldown = rightStickCooldownMax;
+    } else if (yAxis2 > 0.5) {
+      // Increase tile size
+      kolam.tsize = min(60, kolam.tsize + 1);
+      background("#FFF")
+      // pg.background("#FFF")
+      setupTiles();
+      
+      rightStickCooldown = rightStickCooldownMax;
+    }
+
+  } else {
+    rightStickCooldown--;
+  }
+
+  // // A -> nextCornerConfig
+  // if (buttons[1].pressed) {
+  //   changeTileColor(cursorRow, cursorCol, -1);
+  // }
+
+  // // B -> prevCornerConfig
+  // if (buttons[0].pressed) {
+  //   changeTileStroke(cursorRow, cursorCol, +1);
+  // }
+
+  // // ZL -> prevCornerConfig
+  // if (buttons[6].pressed) {
+  //   nextCornerConfig(cursorCol, cursorRow);
+  // }
+  
+  // //ZR
+  // if (buttons[7].pressed) {
+  //   prevCornerConfig(cursorCol, cursorRow);
+  // }
+
+  //
+  // -----------------------------------
+  // BUTTONS with Short-Press / Long-Press
+  // -----------------------------------
+  //
+
+  // Let's define some indices for the buttons we want to handle:
+  // A -> index 1
+  // B -> index 0
+  // ZL -> index 6
+  // ZR -> index 7
+  // (Adjust if needed, as some controllers map them differently)
+
+  // We can wrap each button action in a helper function:
+  checkButtonPress(1, () => {
+    // A button short/long press action:
+    // In your original code, "A -> nextCornerConfig" was actually "changeTileColor(cursorRow, cursorCol, -1)"
+    changeTileColor(cursorRow, cursorCol, -1);
+  });
+
+  checkButtonPress(0, () => {
+    // B button short/long press action:
+    // In your original code, "B -> prevCornerConfig" was "changeTileStroke(cursorRow, cursorCol, +1)"
+    changeTileStroke(cursorRow, cursorCol, +1);
+  });
+
+  checkButtonPress(9, () => {
+    thickness++;
+  });
+  checkButtonPress(8, () => {
+    if (thickness>0)thickness--;
+  });
+
+  checkButtonPress(3, () => {
+   configTiles();
+  });
+
+
+  checkButtonPress(6, () => {
+    // ZL -> nextCornerConfig
+    nextCornerConfig(cursorCol, cursorRow);
+  });
+
+  checkButtonPress(7, () => {
+    // ZR -> prevCornerConfig
+    prevCornerConfig(cursorCol, cursorRow);
+  });
+
+  // This function handles short/long press logic for a single button
+  function checkButtonPress(btnIndex, shortPressCallback) {
+    // Is it pressed this frame?
+    let isPressed = buttons[btnIndex] && buttons[btnIndex].pressed;
+
+    if (isPressed) {
+      // If it was NOT pressed last frame, it's a new press
+      if (!pressedLastFrame[btnIndex]) {
+        pressedLastFrame[btnIndex] = true;
+        pressDuration[btnIndex] = 1;
+
+        // SHORT PRESS action
+        // Immediately do 1 jump
+        shortPressCallback();
+      } else {
+        // If it was already pressed last frame, increment pressDuration
+        pressDuration[btnIndex]++;
+
+        // If pressDuration > longPressThreshold (3 sec),
+        // then do repeated jumps
+        if (pressDuration[btnIndex] > longPressThreshold) {
+          // e.g. skip color/corner every repeatInterval frames
+          if (
+            (pressDuration[btnIndex] - longPressThreshold) %
+              repeatInterval ===
+            0
+          ) {
+            shortPressCallback();
+          }
+        }
+      }
+    } else {
+      // If it's not pressed this frame, reset
+      pressedLastFrame[btnIndex] = false;
+      pressDuration[btnIndex] = 0;
+    }
+  }
+}
+
+    // --------------------------------------------------
+    // CORNER CONFIG FUNCTIONS
+    // (We treat each tile's corners as a 4-bit pattern)
+    // --------------------------------------------------
+    // Return array [top_left, top_right, bottom_right, bottom_left]
+    function getCorners(i, j) {
+      // Because tile (i, j) corners are determined by:
+      // top_left:    link[i][j]
+      // top_right:   link[i+1][j]
+      // bottom_right: link[i+1][j+1]
+      // bottom_left: link[i][j+1]
+      return [
+        link[i][j],
+        link[i + 1][j],
+        link[i + 1][j + 1],
+        link[i][j + 1],
+      ];
+    }
+
+    function setCorners(i, j, c) {
+      link[i][j] = c[0];
+      link[i + 1][j] = c[1];
+      link[i + 1][j + 1] = c[2];
+      link[i][j + 1] = c[3];
+    }
+
+    function nextCornerConfig(i, j) {
+      let c = getCorners(i, j);
+      // Convert [tl, tr, br, bl] into 4-bit integer
+      let pattern = (c[0] << 3) | (c[1] << 2) | (c[2] << 1) | c[3];
+      pattern = (pattern + 1) & 0x0f; // cycle from 0..15
+      // Convert back to array
+      let newC = [
+        (pattern >> 3) & 1,
+        (pattern >> 2) & 1,
+        (pattern >> 1) & 1,
+        pattern & 1,
+      ];
+      setCorners(i, j, newC);
+    }
+
+    function prevCornerConfig(i, j) {
+      let c = getCorners(i, j);
+      let pattern = (c[0] << 3) | (c[1] << 2) | (c[2] << 1) | c[3];
+      pattern = (pattern - 1 + 16) & 0x0f; // cycle from 15..0
+      let newC = [
+        (pattern >> 3) & 1,
+        (pattern >> 2) & 1,
+        (pattern >> 1) & 1,
+        pattern & 1,
+      ];
+      setCorners(i, j, newC);
+    }
+
+    // --------------------------------------------------
+    // P5.JS SETUP & DRAW
+    // --------------------------------------------------
+    function setup() {
+      createCanvas(windowWidth, windowHeight);
+      bgcolor = "#fff";
+
+      kolam = new Kolam();
+      setupTiles();
+      configTiles();
+
+      // Listen for gamepad connect/disconnect
+      window.addEventListener("gamepadconnected", onGamepadConnected);
+      window.addEventListener("gamepaddisconnected", onGamepadDisconnected);
+
+      // // Attach slider event listeners
+      // document.getElementById("size-slider").addEventListener("input", (e) => {
+      //   kolam.tsize = parseInt(e.target.value);
+      //   setupTiles();
+      // });
+
+      // document
+      //   .getElementById("margin-slider")
+      //   .addEventListener("input", (e) => {
+      //     kolam.margin = parseInt(e.target.value);
+      //     setupTiles();
+      //   });
+
+      // document.getElementById("tiles-slider").addEventListener("input", (e) => {
+      //   kolam.tnumber = parseInt(e.target.value);
+      //   // reset cursor to stay in range
+      //   cursorRow = 0;
+      //   cursorCol = 0;
+      //   setupTiles();
+      // });
+
+      // document
+      //   .getElementById("refresh-slider")
+      //   .addEventListener("input", (e) => {
+      //     kolam.refreshRate = parseInt(e.target.value);
+      //   });
+
+        configTiles();
+    }
+
+    function draw() {
+      handleGamepadInput();
+
+      randomSeed(seed);
+      if (idx <= 1) drawTile();
+
+      push();
+      translate(width / 2, height / 2);
+      imageMode(CENTER);
+      image(pg, 0, 0);
+      pop();
+
+      // Refresh config
+      // if (frameCount % kolam.refreshRate === 0) {
+      //   seed++;
+      //   configTiles();
+      // }
+    }
+
+    function windowResized() {
+      resizeCanvas(windowWidth, windowHeight);
+      setupTiles();
+    }
+
+    // --------------------------------------------------
+    // KOLAM LOGIC
+    // --------------------------------------------------
+    function setupTiles() {
+      pg = createGraphics(
+        kolam.tsize * kolam.tnumber + 2 * kolam.margin,
+        kolam.tsize * kolam.tnumber + 2 * kolam.margin
+      );
+      
+
+      link = [];
+      nlink = [];
+      for (let i = 0; i < kolam.tnumber + 1; i++) {
+        let pushThis = [];
+        for (let j = 0; j < kolam.tnumber + 1; j++) {
+          pushThis.push(1);
+        }
+        link.push(pushThis);
+        nlink.push(pushThis);
+      }
+
+      // Initialize tileColors with random indices
+          for (let i = 0; i < kolam.tnumber; i++) {
+            tileColors[i] = [];
+            tileStrokes[i] =[];
+            for (let j = 0; j < kolam.tnumber; j++) {
+              tileColors[i][j] = 9;
+              tileStrokes[i][j]= 1;
+            }
+          }
+
+
+      idx = 0; // for animation interpolation
+    }
+
+    // Creates symmetrical patterns across link & nlink
+    function configTiles() {
+      idx = 0;
+      // Copy link -> nlink
+      for (let i = 0; i < link.length; i++) {
+        for (let j = 0; j < link[0].length; j++) {
+          link[i][j] = nlink[i][j];
+        }
+      }
+
+      let limit = random(0.4, 0.7);
+      for (let i = 0; i < nlink.length; i++) {
+        for (let j = 0; j < nlink.length / 2; j++) {
+          let l = random(1) > limit ? 1 : 0;
+
+          // symmetrical assignment
+          nlink[i][j] = l;
+          nlink[i][nlink.length - j - 1] = l;
+          nlink[j][i] = l;
+          nlink[nlink.length - j - 1][i] = l;
+          nlink[nlink.length - 1 - i][j] = l;
+          nlink[nlink.length - 1 - i][nlink.length - j - 1] = l;
+          nlink[j][nlink.length - 1 - i] = l;
+          nlink[nlink.length - 1 - j][nlink.length - 1 - i] = l;
+        }
+      }
+    }
+
+    // Function to change the color index of a specific tile
+      function changeTileColor(row, col, direction) {
+        if (
+          row < 0 ||
+          row >= kolam.tnumber ||
+          col < 0 ||
+          col >= kolam.tnumber
+        ) {
+          return;
+        }
+        tileColors[col][row] =
+          (tileColors[col][row] + direction + colors.length) % colors.length;
+      }
+
+      function changeTileStroke(row, col, direction) {
+        if (
+          row < 0 ||
+          row >= kolam.tnumber ||
+          col < 0 ||
+          col >= kolam.tnumber
+        ) {
+          return;
+        }
+        tileStrokes[col][row] =
+          (tileStrokes[col][row] + direction + colors.length) % colors.length;
+      }
+
+
+    // Draws the tile pattern onto pg
+    function drawTile() {
+      pg.background(bgcolor);
+
+      for (let i = 0; i < kolam.tnumber; i++) {
+        for (let j = 0; j < kolam.tnumber; j++) {
+          if ((i + j) % 2 === 0) {
+            let top_left = (kolam.tsize / 2) * lerp(link[i][j], nlink[i][j], idx);
+            let top_right =
+              (kolam.tsize / 2) * lerp(link[i + 1][j], nlink[i + 1][j], idx);
+            let bottom_right =
+              (kolam.tsize / 2) *
+              lerp(link[i + 1][j + 1], nlink[i + 1][j + 1], idx);
+            let bottom_left =
+              (kolam.tsize / 2) * lerp(link[i][j + 1], nlink[i][j + 1], idx);
+
+            pg.stroke(colors[tileStrokes[i][j]]);
+            pg.strokeWeight(thickness);
+            pg.fill(colors[tileColors[i][j]]);
+            pg.rect(
+              i * kolam.tsize + kolam.margin,
+              j * kolam.tsize + kolam.margin,
+              kolam.tsize,
+              kolam.tsize,
+              top_left,
+              top_right,
+              bottom_right,
+              bottom_left
+            );
+
+            pg.strokeWeight(thickness*1.3);
+            // Just an example point in the center
+            pg.point(
+              i * kolam.tsize + kolam.tsize / 2 + kolam.margin,
+              j * kolam.tsize + kolam.tsize / 2 + kolam.margin
+            );
+          }
+        }
+      }
+
+      // Highlight the selected tile with a thick rectangle
+      pg.noFill();
+      pg.stroke("red");
+      pg.strokeWeight(3);
+    
+      let offset = (kolam.tsize * 1.2 - kolam.tsize) / 2;
+
+      pg.rect(
+        cursorCol * kolam.tsize + kolam.margin - offset, // Adjust x position
+        cursorRow * kolam.tsize + kolam.margin - offset, // Adjust y position
+        kolam.tsize * 1.2,
+        kolam.tsize * 1.2
+      );
+
+
+      idx += 0.02;
+      idx = constrain(idx, 0, 1);
+    }
+  </script>
+</html>

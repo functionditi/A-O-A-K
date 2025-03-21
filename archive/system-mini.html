@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolam with Transparent PNG Export (White Strokes/Dots)</title>
+    <!-- p5.js library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <!-- p5.svg library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js-svg/1.0.3/p5.svg.min.js"></script>
+    <style>
+      body { margin: 0; padding: 0; }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Global constant for tile size.
+      const TILE_SIZE = 20;
+      
+      // We'll use white for all strokes/dots.
+      let thickness = 3;
+      let extraMargin = thickness;
+      
+      // ------------------------
+      // Buffer 1: Perlin Noise Buffer (using polar coordinates)
+      // ------------------------
+      let buffer;
+      let noiseScale = 0.007;
+      
+      function createBuffer() {
+        let bufWidth = windowWidth / 4;
+        let bufHeight = windowHeight / 4;
+        buffer = createGraphics(bufWidth, bufHeight);
+        buffer.background(255);
+        
+        // Use polar coordinates relative to the buffer center.
+        let cx = bufWidth / 2;
+        let cy = bufHeight / 2;
+        let noiseScaleRadius = 0.007;
+        let noiseScaleAngle = 0.05;
+        
+        buffer.loadPixels();
+        for (let x = 0; x < bufWidth; x++) {
+          for (let y = 0; y < bufHeight; y++) {
+            let dx = x - cx;
+            let dy = y - cy;
+            let r = sqrt(dx * dx + dy * dy);
+            let a = atan2(dy, dx);
+            let n = noise(r * noiseScaleRadius, a * noiseScaleAngle);
+            let col;
+            if (n < 0.25) {
+              col = 0;    // black
+            } else if (n < 0.4) {
+              col = 85;   // dark grey
+            } else if (n < 0.7) {
+              col = 170;  // light grey
+            } else {
+              col = 255;  // white
+            }
+            let index = (x + y * bufWidth) * 4;
+            buffer.pixels[index] = col;
+            buffer.pixels[index + 1] = col;
+            buffer.pixels[index + 2] = col;
+            buffer.pixels[index + 3] = 255;
+          }
+        }
+        buffer.updatePixels();
+        buffer.noSmooth();
+      }
+      
+      // ------------------------
+      // Buffer 2: 2x2 Mirrored Repetition of Buffer
+      // ------------------------
+      let buffer2;
+      function createBuffer2() {
+        buffer2 = createGraphics(buffer.width * 2, buffer.height * 2);
+        buffer2.noSmooth();
+        // Top-left quadrant.
+        buffer2.image(buffer, 0, 0, buffer.width, buffer.height);
+        // Top-right quadrant: mirror horizontally.
+        buffer2.push();
+        buffer2.translate(buffer.width * 2, 0);
+        buffer2.scale(-1, 1);
+        buffer2.image(buffer, 0, 0, buffer.width, buffer.height);
+        buffer2.pop();
+        // Bottom-left quadrant: mirror vertically.
+        buffer2.push();
+        buffer2.translate(0, buffer.height * 2);
+        buffer2.scale(1, -1);
+        buffer2.image(buffer, 0, 0, buffer.width, buffer.height);
+        buffer2.pop();
+        // Bottom-right quadrant: mirror both axes.
+        buffer2.push();
+        buffer2.translate(buffer.width * 2, buffer.height * 2);
+        buffer2.scale(-1, -1);
+        buffer2.image(buffer, 0, 0, buffer.width, buffer.height);
+        buffer2.pop();
+      }
+      
+      // ------------------------
+      // Kolam Class Definition (always white stroke & dot, no fill)
+      // ------------------------
+      class Kolam {
+        constructor(cols, rows, margin, scaleFactor = 1) {
+          this.tnumberCols = cols;
+          this.tnumberRows = rows;
+          this.margin = margin;
+          this.scaleFactor = scaleFactor;
+          
+          // Set tile size using the global constant.
+          this.tsize = TILE_SIZE * this.scaleFactor;
+          
+          // Compute overall dimensions for the offscreen graphics.
+          this.dimensionWidth = this.tsize * this.tnumberCols + 2 * (this.margin + extraMargin);
+          this.dimensionHeight = this.tsize * this.tnumberRows + 2 * (this.margin + extraMargin);
+          this.offsetX = (this.dimensionWidth - this.tsize * this.tnumberCols) / 2;
+          this.offsetY = (this.dimensionHeight - this.tsize * this.tnumberRows) / 2;
+          
+          // Create an offscreen graphics buffer (with transparent background).
+          this.pg = createGraphics(this.dimensionWidth, this.dimensionHeight);
+          // Do not set a background here so that it remains transparent.
+          
+          // Set up the grid of tile states.
+          this.setupTiles();
+          
+          // Render the grid into the offscreen pg.
+          this.drawKolam();
+        }
+        
+        setupTiles() {
+          // Create a grid (rows+1 x cols+1) for calculating corner rounding.
+          this.link = [];
+          for (let j = 0; j < this.tnumberRows + 1; j++) {
+            let row = [];
+            for (let i = 0; i < this.tnumberCols + 1; i++) {
+              row.push(random() < 0.5 ? 1 : 0);
+            }
+            this.link.push(row);
+          }
+        }
+        
+        drawKolam() {
+          this.pg.clear();
+          // Loop over every tile (only alternate positions).
+          for (let j = 0; j < this.tnumberRows; j++) {
+            for (let i = 0; i < this.tnumberCols; i++) {
+              if ((i + j) % 2 !== 0) continue;
+              
+              let tileX = this.offsetX + i * this.tsize + this.margin;
+              let tileY = this.offsetY + j * this.tsize + this.margin;
+              
+              // Compute the tile's center in main canvas coordinates.
+              let tileCenterX = width / 2 - this.dimensionWidth / 2 + tileX + this.tsize / 2;
+              let tileCenterY = height / 2 - this.dimensionHeight / 2 + tileY + this.tsize / 2;
+              
+              // Map these coordinates to buffer2.
+              let bufX = floor(map(tileCenterX, 0, windowWidth, 0, buffer2.width));
+              let bufY = floor(map(tileCenterY, 0, windowHeight, 0, buffer2.height));
+              let sample = buffer2.get(bufX, bufY);
+              let val = red(sample);
+              
+              // Skip drawing if the noise sample is black.
+              if (val === 0) continue;
+              
+              // Always use white for stroke and dot.
+              let strokeCol = "#FFFFFF";
+              
+              // Calculate corner radii from the link grid.
+              let r_topLeft = (this.tsize / 2) * this.link[j][i];
+              let r_topRight = (this.tsize / 2) * this.link[j][i + 1];
+              let r_bottomRight = (this.tsize / 2) * this.link[j + 1][i + 1];
+              let r_bottomLeft = (this.tsize / 2) * this.link[j + 1][i];
+              
+              this.pg.noFill();
+              this.pg.stroke(strokeCol);
+              this.pg.strokeWeight(thickness * 0.6);
+              this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+                           r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+              
+              this.pg.stroke(strokeCol);
+              this.pg.strokeWeight(thickness * 0.8);
+              this.pg.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+            }
+          }
+        }
+        
+        // For export: draw the same kolam pattern into a provided graphics context.
+        drawKolamToContext(g) {
+          for (let j = 0; j < this.tnumberRows; j++) {
+            for (let i = 0; i < this.tnumberCols; i++) {
+              if ((i + j) % 2 !== 0) continue;
+              
+              let tileX = this.offsetX + i * this.tsize + this.margin;
+              let tileY = this.offsetY + j * this.tsize + this.margin;
+              let tileCenterX = width / 2 - this.dimensionWidth / 2 + tileX + this.tsize / 2;
+              let tileCenterY = height / 2 - this.dimensionHeight / 2 + tileY + this.tsize / 2;
+              let bufX = floor(map(tileCenterX, 0, windowWidth, 0, buffer2.width));
+              let bufY = floor(map(tileCenterY, 0, windowHeight, 0, buffer2.height));
+              let sample = buffer2.get(bufX, bufY);
+              let val = red(sample);
+              if (val === 0) continue;
+              
+              let strokeCol = "#FFFFFF";
+              let r_topLeft = (this.tsize / 2) * this.link[j][i];
+              let r_topRight = (this.tsize / 2) * this.link[j][i + 1];
+              let r_bottomRight = (this.tsize / 2) * this.link[j + 1][i + 1];
+              let r_bottomLeft = (this.tsize / 2) * this.link[j + 1][i];
+              
+              g.noFill();
+              g.stroke(strokeCol);
+              g.strokeWeight(thickness * 0.6);
+              g.rect(tileX, tileY, this.tsize, this.tsize,
+                     r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+              
+              g.stroke(strokeCol);
+              g.strokeWeight(thickness * 0.8);
+              g.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+            }
+          }
+        }
+        
+        draw() {
+          imageMode(CENTER);
+          push();
+          translate(width / 2, height / 2);
+          image(this.pg, 0, 0);
+          pop();
+        }
+      }
+      
+      let kolam;
+      
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        pixelDensity(1);
+        createBuffer();
+        createBuffer2();
+        let marginKolam = 5;
+        let cols = floor((windowWidth - 2 * (marginKolam + extraMargin)) / TILE_SIZE);
+        let rows = floor((windowHeight - 2 * (marginKolam + extraMargin)) / TILE_SIZE);
+        kolam = new Kolam(cols, rows, marginKolam, 1);
+      }
+      
+      function draw() {
+        background("#ef4b41");
+        kolam.draw();
+      }
+      
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        createBuffer();
+        createBuffer2();
+        let marginKolam = 5;
+        let cols = floor((windowWidth - 2 * (marginKolam + extraMargin)) / TILE_SIZE);
+        let rows = floor((windowHeight - 2 * (marginKolam + extraMargin)) / TILE_SIZE);
+        kolam = new Kolam(cols, rows, marginKolam, 1);
+      }
+      
+      function keyPressed() {
+        if (key === ' ') {
+          // SVG export remains unchanged.
+          const svgRenderer = (typeof SVG !== "undefined") ? SVG : "svg";
+          let svgGraphics = createGraphics(width, height, svgRenderer);
+          svgGraphics.background("#FFF");
+          svgGraphics.push();
+          svgGraphics.translate(width / 2, height / 2);
+          svgGraphics.translate(-kolam.dimensionWidth / 2, -kolam.dimensionHeight / 2);
+          kolam.drawKolamToContext(svgGraphics);
+          svgGraphics.pop();
+          save(svgGraphics, "kolam.svg");
+        }
+        if (key === 'p' || key === 'P') {
+          // Create a graphics context for PNG export with a transparent background.
+          let pngGraphics = createGraphics(width, height);
+          pngGraphics.clear(); // ensure transparency
+          pngGraphics.push();
+          pngGraphics.translate(width / 2, height / 2);
+          pngGraphics.translate(-kolam.dimensionWidth / 2, -kolam.dimensionHeight / 2);
+          kolam.drawKolamToContext(pngGraphics);
+          pngGraphics.pop();
+          save(pngGraphics, "kolam.png");
+        }
+      }
+    </script>
+  </body>
+</html>

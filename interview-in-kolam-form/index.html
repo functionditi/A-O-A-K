@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <script src="../libraries/p5/p5.js"></script>
+    <script src="../libraries/p5/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../styles.css">
+    <meta charset="utf-8" />
+
+
+    <style>
+              /* Make sure the canvas is positioned absolutely with a low z-index */
+        canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: -1;
+        }
+
+        /* Ensure the button is positioned above with a higher z-index */
+        .btn {
+          position: fixed;
+          bottom: 20px; /* adjust distance from the bottom as needed */
+          left: 6%;
+          transform: translateX(-50%);
+          z-index: 10;
+          font-size: 1rem;
+        }
+
+
+
+
+    </style>
+
+  </head>
+  <body>
+    <main>
+    </main>
+    <a href="../index.html"><button class="btn" >⇠go back</button></a>
+
+    <script src="sketch.js"></script>
+  </body>
+</html>

@@ -216,7 +216,7 @@ color: #fff;
     left: 100px;        /* initial position: adjust as needed */
     width: 120px;  /* Adjust width to your liking */
     height: 120px; /* Adjust height to your liking */
-    border: 2px solid white;
+    border: 2px solid #e4c753;
     cursor: grab; 
     user-select: none;  /* prevent text selection when dragging */
   }
@@ -236,7 +236,7 @@ color: #fff;
     position: absolute;
     width: 120px;  /* Adjust width to your liking */
     height: 120px; /* Adjust height to your liking */
-    border: 2px solid white;
+    border: 2px solid #e4c753;
     cursor: grab;
     user-select: none; /* Prevent accidental text selection while dragging */
   }
@@ -292,10 +292,10 @@ color: #fff;
   font-weight: 100;
   
   border: 2px solid #F25C05;
-  background-color: #f6f2ee;
+  background-color: #e4c753;
   color: #F25C05;
   padding: 7px 14px;
-  font-size: 1.2vw;
+  font-size: 1vw;
   cursor: pointer;
   text-align: center;
     border-radius: 40px;

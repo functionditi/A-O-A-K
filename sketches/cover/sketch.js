@@ -136,7 +136,7 @@ function drawDiagonalLine(midX, midY, lineLength, angle) {
   stroke("#F25C05");
   strokeWeight(12);
   line(x1, y1, x2, y2);
-  stroke("#FFF");
+  stroke("#e4c753");
   strokeWeight(3);
   line(x1, y1, x2, y2);
 }
@@ -152,7 +152,7 @@ function loopAround(dot, theAngle, start, stop) {
   strokeWeight(12);
   
   arc(0, 0, spacing * 0.66, spacing * 0.66, start, stop);
-  stroke("#FFF");
+  stroke("#e4c753");
   strokeWeight(3);
   arc(0, 0, spacing * 0.66, spacing * 0.66, start, stop);
   pop();

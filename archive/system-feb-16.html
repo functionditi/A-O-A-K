@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Kolams with Game of Life – Two Colors per Kolam & Varying Update Rates</title>
+    <script src="libraries/p5/p5.js"></script>
+    <style>
+      body { margin: 0; padding: 0; }
+    </style>
+  </head>
+  <body>
+    <script>
+      // Define your palette.
+      let palette = [
+        "#8F8EBF",
+        "#3264A6",
+        "#B8D9D5",
+        "#DCC329",
+        "#F24535"
+      ];
+
+      // let palette=[
+      //   "#2E2D2B",
+      //   "#EC5E5D",
+      //   "#7F3E56",
+      //   "#AE2337",  
+      //   "#E47779",
+      //   "#CFA89B",
+      //   "#7F6C51",
+      //   "#322A1F",
+      //   "#E3512C",
+      //   "#EF8D10",
+      //   "#C7A79B",
+      //   "#F3EAE1",
+      //   "#754356",
+      //   "#BAC0C4",
+      //   "#CEE0EE",
+      //   "#98BDE8",
+      //   "#577298",
+      //   "#4A4682"
+      // ];
+      // let palette=[
+      //   "#5475E8",
+      //   "#BBC39E",
+      //   "#8C8419",
+      //   "#FFF3D9",
+      //   "#8B392E",
+      //     "#8F8EBF",
+      //   "#3264A6",
+      //   "#B8D9D5",
+      //   "#DCC329",
+      //   "#F24535"
+      // ];
+      let thickness = 6;
+      let extraMargin = thickness;
+      let birthConditions = [2, 3, 4];       // A dead cell becomes alive with exactly 3 live neighbors.
+let survivalConditions = [2, 3];   // A live cell survives with 2 or 3 neighbors.
+
+      
+      // Set the overall background color.
+      let bgcolor = "#CFA082";
+      
+      // Global layout variables.
+      let rows = [];         // Each row is an array of Kolams.
+      let totalKolams = 0;   // Running total.
+      let maxKolams = 60;    // Maximum number of Kolams.
+      
+      // Helper function: Draw a vertical gradient rectangle on a given graphics buffer.
+      // Note: This gradient is drawn as a series of horizontal lines and does not support rounded corners.
+      function drawGradientRect(pg, x, y, w, h, c1, c2) {
+        pg.push();
+        pg.noFill();
+        for (let i = 0; i < h; i++) {
+          let inter = map(i, 0, h, 0, 1);
+          let c = lerpColor(color(c1), color(c2), inter);
+          pg.stroke(c);
+          pg.line(x, y + i, x + w, y + i);
+        }
+        pg.pop();
+      }
+      
+      // Kolam class encapsulates the grid, Life rules, drawing, and its update rate.
+      class Kolam {
+        constructor(tnumber, tsize, margin) {
+            this.tnumber = tnumber;
+            
+            // Adjust tile size dynamically based on the number of tiles
+            if (this.tnumber <= 3) {
+                this.tsize = int(random(40, 60)); // Larger tiles for fewer tiles
+            }
+            else if (this.tnumber <= 6) {
+                this.tsize = int(random(30, 50)); // Larger tiles for fewer tiles
+            } else {
+                this.tsize = int(random(15, 40)); // Smaller tiles for more tiles
+            }
+            
+            this.margin = margin;
+            
+            // Assign a random multiple of PI/16 for rotation
+            let rotProb = [1, 1, 1, 1, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+            this.rotationAngle = int(random(rotProb)) * PI / 8; 
+            
+            this.idx = 0;
+            this.fillColor = random(palette);
+            this.strokeColor = random(palette.filter(c => c !== this.fillColor));
+            this.activeColor = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor));
+            this.gradientA = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor && c !== this.activeColor));
+            this.gradientB = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor && c !== this.activeColor && c !== this.gradientA));
+             
+            this.updateRate = int(random(60, 240));  
+            this.lastUpdateFrame = frameCount;
+            
+            this.creationTime = millis(); // Track when Kolam is created
+            this.opacity = 255;  // Starts fully opaque
+            this.dispersing = false;  // Not dispersing initially
+            this.dispersalStartTime = null; // Time when dispersal starts
+            this.tileDispersalTimes = []; // Store when each tile disappears
+            
+            this.setupTiles();
+            this.configTiles();
+        }
+
+
+
+        
+        setupTiles() {
+          // Compute overall dimension and cache drawing offsets.
+          this.dimension = this.tsize * this.tnumber + 2 * (this.margin + extraMargin);
+          this.offsetX = (this.dimension - this.tsize * this.tnumber) / 2;
+          this.offsetY = this.offsetX;
+          this.pg = createGraphics(this.dimension, this.dimension);
+          
+          // Create grid arrays.
+          this.link = [];
+          this.nlink = [];
+          for (let i = 0; i < this.tnumber + 1; i++) {
+            let row = [];
+            for (let j = 0; j < this.tnumber + 1; j++) {
+              row.push(random() < 0.5 ? 1 : 0);
+            }
+            this.link.push(row.slice());
+            this.nlink.push(row.slice());
+          }
+        }
+        
+        configTiles() {
+            this.idx = 0;
+            
+            // Copy the new grid into the current grid.
+            for (let i = 0; i < this.link.length; i++) {
+                for (let j = 0; j < this.link[0].length; j++) {
+                    this.link[i][j] = this.nlink[i][j];
+                }
+            }
+            
+            // Enforce eightfold symmetry.
+            let limit = random(0.4, 0.7);
+            for (let i = 0; i < this.nlink.length; i++) {
+                for (let j = 0; j < this.nlink.length / 2; j++) {
+                    let l = random(1) > limit ? 1 : 0;
+                    this.nlink[i][j] = l;
+                    this.nlink[i][this.nlink.length - j - 1] = l;
+                    this.nlink[j][i] = l;
+                    this.nlink[this.nlink.length - j - 1][i] = l;
+                    this.nlink[this.nlink.length - 1 - i][j] = l;
+                    this.nlink[this.nlink.length - 1 - i][this.nlink.length - j - 1] = l;
+                    this.nlink[j][this.nlink.length - 1 - i] = l;
+                    this.nlink[this.nlink.length - 1 - j][this.nlink.length - 1 - i] = l;
+                }
+            }
+            
+            // Assign a random dispersal time (between 0 and 3 seconds) to each tile
+            for (let i = 0; i < this.nlink.length; i++) {
+                this.tileDispersalTimes[i] = [];
+                for (let j = 0; j < this.nlink[i].length; j++) {
+                    this.tileDispersalTimes[i][j] = random(0, 3000); // 0 to 3 seconds delay
+                }
+            }
+        }
+
+        
+        updateLife() {
+          let newGrid = [];
+          for (let i = 0; i < this.tnumber + 1; i++) {
+            newGrid[i] = [];
+            for (let j = 0; j < this.tnumber + 1; j++) {
+              let liveNeighbors = 0;
+              for (let di = -1; di <= 1; di++) {
+                for (let dj = -1; dj <= 1; dj++) {
+                  if (di === 0 && dj === 0) continue;
+                  let ni = i + di;
+                  let nj = j + dj;
+                  if (ni >= 0 && ni < this.tnumber + 1 && nj >= 0 && nj < this.tnumber + 1) {
+                    liveNeighbors += this.link[ni][nj];
+                  }
+                }
+              }
+              if (this.link[i][j] === 1) {
+                newGrid[i][j] = survivalConditions.includes(liveNeighbors) ? 1 : 0;
+              } else {
+                newGrid[i][j] = birthConditions.includes(liveNeighbors) ? 1 : 0;
+              }
+            }
+          }
+          return newGrid;
+        }
+        
+        triggerLifeUpdate() {
+          for (let i = 0; i < this.link.length; i++) {
+            for (let j = 0; j < this.link[0].length; j++) {
+              this.link[i][j] = this.nlink[i][j];
+            }
+          }
+          this.nlink = this.updateLife();
+          this.idx = 0;
+        }
+
+        draw() {
+              this.pg.clear();
+
+              let age = millis() - this.creationTime;
+
+              if (age > 20000 && !this.dispersing) {  
+                  this.dispersing = true;  
+                  this.dispersalStartTime = millis(); // Mark the start of dispersal
+              }
+
+              for (let i = 0; i < this.tnumber; i++) {
+                  for (let j = 0; j < this.tnumber; j++) {
+                      if ((i + j) % 2 === 0) {
+                          let tileX = this.offsetX + i * this.tsize + this.margin;
+                          let tileY = this.offsetY + j * this.tsize + this.margin;
+
+                          if (this.dispersing) {
+                              let elapsed = millis() - this.dispersalStartTime;
+                              if (elapsed > this.tileDispersalTimes[i][j]) {
+                                  continue; // Skip drawing this tile if it's time to disappear
+                              }
+                          }
+
+                          let r_topLeft = (this.tsize / 2) * lerp(this.link[i][j], this.nlink[i][j], this.idx);
+                          let r_topRight = (this.tsize / 2) * lerp(this.link[i+1][j], this.nlink[i+1][j], this.idx);
+                          let r_bottomRight = (this.tsize / 2) * lerp(this.link[i+1][j+1], this.nlink[i+1][j+1], this.idx);
+                          let r_bottomLeft = (this.tsize / 2) * lerp(this.link[i][j+1], this.nlink[i][j+1], this.idx);
+
+                          let state = this.nlink[i][j]; 
+
+                          // Determine colors
+                          let c1, c2;
+                          if (state === 1) {
+                              c1 = this.activeColor;
+                              c2 = this.gradientA;
+                          } else {
+                              c1 = this.fillColor;
+                              c2 = this.gradientB;
+                          }
+
+                          if (r_topLeft === 0 && r_topRight === 0 && r_bottomRight === 0 && r_bottomLeft === 0) {
+                              // **Apply gradient only if it's a square tile**
+                             
+                              drawGradientRect(this.pg, tileX, tileY, this.tsize, this.tsize, c1, c2);
+                              
+                          } else {
+                              // **Apply flat fill only if it's not a square**
+                              this.pg.fill(c1);
+                              this.pg.noStroke();
+                              this.pg.rect(tileX, tileY, this.tsize, this.tsize, r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+                              this.pg.stroke(this.strokeColor);
+                              this.pg.strokeWeight(thickness * 0.6);
+                              this.pg.noFill(); // Ensures stroke doesn't override the gradient
+                              this.pg.rect(tileX, tileY, this.tsize, this.tsize, r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+
+                          }
+
+                          // Draw stroke around all tiles
+                         
+                          // Draw center point
+                          this.pg.stroke("white");
+                          this.pg.strokeWeight(thickness * 1.3);
+                          this.pg.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+                      }
+                  }
+              }
+
+              this.idx += 0.02;
+              this.idx = constrain(this.idx, 0, 1);
+          }
+
+       
+    
+      }
+      
+      // Layout: maintain an array of rows (each row is an array of Kolams).
+      // New Kolams are added to the current row if they fit; otherwise, a new row is started.
+      // recalcRowsPositions() computes each row's total width and effective height,
+      // then assigns each Kolam an (x, y) position so that the whole block is centered.
+      function recalcRowsPositions() {
+        let gapFactor = 0.5; // For rows after the first, use 50% of the full row height.
+        let rowHeights = [];
+        let rowWidths = [];
+        let effectiveHeights = [];
+        for (let r = 0; r < rows.length; r++) {
+          let row = rows[r];
+          let rowWidth = 0;
+          let rowHeight = 0;
+          for (let i = 0; i < row.length; i++) {
+            rowWidth += row[i].dimension;
+            rowHeight = max(rowHeight, row[i].dimension);
+          }
+          rowWidths[r] = rowWidth;
+          rowHeights[r] = rowHeight;
+          effectiveHeights[r] = r === 0 ? rowHeight : rowHeight * gapFactor;
+        }
+        let totalHeight = effectiveHeights.reduce((a, b) => a + b, 0);
+        let startY = (height - totalHeight) / 2;
+        for (let r = 0; r < rows.length; r++) {
+          let row = rows[r];
+          let rowWidth = rowWidths[r];
+          let rowHeight = rowHeights[r];
+          let startX = (width - rowWidth) / 2;
+          let currentX = startX;
+          let yPos = startY + effectiveHeights[r] / 2;
+          for (let i = 0; i < row.length; i++) {
+            let k = row[i];
+            k.x = currentX + k.dimension / 2;
+            k.y = yPos;
+            currentX += k.dimension;
+          }
+          startY += effectiveHeights[r];
+        }
+      }
+      
+      // addKolam() adds a new Kolam to the current row if there's room,
+      // or starts a new row. It stops adding if totalKolams reaches maxKolams.
+      // Also, every alternate Kolam (by total count) is set to be tilted.
+      function addKolam(newKolam) {
+        if (totalKolams >= maxKolams) return;
+        newKolam.tilt = (totalKolams % 2 === 1);
+        if (rows.length === 0) {
+          rows.push([newKolam]);
+        } else {
+          let lastRow = rows[rows.length - 1];
+          let rowWidth = lastRow.reduce((sum, k) => sum + k.dimension, 0);
+          if (rowWidth + newKolam.dimension > width) {
+            rows.push([newKolam]);
+          } else {
+            lastRow.push(newKolam);
+          }
+        }
+        totalKolams++;
+        recalcRowsPositions();
+      }
+      
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        bgcolor = "#EDE4DD";
+        // Create the first Kolam with updated random parameters.
+        let tnumber = int(random(2, 6));
+        let tsize = int(random(10, 30));
+        let margin = 5;
+        let k = new Kolam(tnumber, tsize, margin);
+        addKolam(k);
+      }
+      
+      function draw() {
+          background(bgcolor);
+          imageMode(CENTER);
+          
+          for (let r = rows.length - 1; r >= 0; r--) {
+              let row = rows[r];
+              
+              for (let i = row.length - 1; i >= 0; i--) {
+                  let k = row[i];
+                  k.draw();
+                  
+                  push();
+                  translate(k.x, k.y);
+                  rotate(k.rotationAngle);
+                  image(k.pg, 0, 0);
+                  pop();
+                  
+                  if (frameCount - k.lastUpdateFrame >= k.updateRate) {
+                      k.triggerLifeUpdate();
+                      k.lastUpdateFrame = frameCount;
+                  }
+                  
+                  // Check if all tiles have dispersed
+                  if (k.dispersing && millis() - k.dispersalStartTime > 3000) {
+                      row.splice(i, 1);
+                      totalKolams--;
+                  }
+              }
+              
+              // Remove empty rows
+              if (row.length === 0) {
+                  rows.splice(r, 1);
+              }
+          }
+      }
+
+ 
+      
+      // When the space bar is pressed, create a new Kolam (if under maxKolams)
+      // with the updated random parameters.
+      function keyPressed() {
+            if (key === ' ') {
+                if (totalKolams >= maxKolams) return;
+                
+                let tnumber = int(random(2, 20)); // Varying number of tiles
+                let margin = 5;
+                
+                let newKolam = new Kolam(tnumber, 0, margin); // Tile size is now handled inside constructor
+                addKolam(newKolam);
+            }
+        }
+
+      
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        recalcRowsPositions();
+      }
+    </script>
+  </body>
+</html>

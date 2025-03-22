@@ -666,10 +666,10 @@ draw() {
         serial2.list();
         
         // Open the specified ports (adjust names if needed)
-        serial1.open("/dev/tty.usbmodem1301");
-        serial2.open("/dev/tty.usbserial-140");
+        serial1.open("/dev/tty.usbmodem11301");
+        serial2.open("/dev/tty.usbserial-1120");
         
-        serial1.on('connected', () => console.log("Connected to /dev/tty.usbmodem1301"));
+        serial1.on('connected', () => console.log("Connected to /dev/tty.usbmodem11301"));
         serial1.on('list', (list) => {
           console.log("Serial1 Port List:");
           list.forEach((port, i) => console.log(i + ": " + port));
@@ -678,7 +678,7 @@ draw() {
         serial1.on('error', (err) => console.log("Error on Serial1: " + err));
         serial1.on('open', () => console.log("Serial1 Port Open"));
         
-        serial2.on('connected', () => console.log("Connected to /dev/tty.usbserial-120"));
+        serial2.on('connected', () => console.log("Connected to /dev/tty.usbserial-1120"));
         serial2.on('list', (list) => {
           console.log("Serial2 Port List:");
           list.forEach((port, i) => console.log(i + ": " + port));
@@ -783,8 +783,8 @@ draw() {
         // Overlay text for Arduino outputs and toggle statuses.
         fill(0);
         textSize(14);
-        text("Arduino (/dev/tty.usbmodem1301): " + latestData1, 10, 20);
-        text("Arduino (/dev/tty.usbserial-120): " + latestData2, 10, 40);
+        text("Arduino (/dev/tty.usbmodem11301): " + latestData1, 10, 20);
+        text("Arduino (/dev/tty.usbserial-1120): " + latestData2, 10, 40);
         // Overlay for current mode, toggle states, and pot values.
         text("Current Display Mode: " + displayMode, 10, height - 180);
         text("Stroke-Only (q): " + (qMode ? "ON" : "OFF"), 10, height - 160);

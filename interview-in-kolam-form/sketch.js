@@ -32,6 +32,7 @@ let sw=6;
 
 
 let transcriptText = `
+
 Aditi Thank you so much for joining this call. I'm Aditi, a creative technologist currently based in Singapore, originally from Bangalore. I'm half Telugu, half Bengali. I've been following your work for a while and noticed how Telugu cultural elements, like creating a kolam or muggulu, are deeply present in it / . 
 
 Aarati I was researching kolams and came across Dr. Gift Siromoney’s work, as well as other mathematicians studying kolams. At the same time, I was thinking about encryption—not just as a way to store or transmit data, but as a ritual itself.

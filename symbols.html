@@ -180,8 +180,9 @@
       function draw() {
         // Get overall volume and amplify it
         volume = mic.getLevel() * 1000;
+        console.log(volume)
         // Map overall volume to m (ensuring it's an integer between 1 and 16)
-        m = int(map(volume, 0, 0.1, 1, 16));
+        m = int(map(volume, 0, 10, 1, 16));
 
         // Analyze the sound's frequency spectrum
         let spectrum = fft.analyze();
@@ -192,7 +193,7 @@
         let spectralCentroid = fft.getCentroid();   // "Brightness" of the sound
 
         // Map frequency-based values to the other Chladni parameters:
-        n = int(map(bass, 0, 255, 1, 16));         // n controlled by bass energy
+        n = int(map(bass, 0, 255, 1, 2));         // n controlled by bass energy
         a = map(treble, 0, 255, -2, 2);             // a controlled by treble energy
         b = map(spectralCentroid, 0, 8000, -2, 2);   // b controlled by spectral centroid
 

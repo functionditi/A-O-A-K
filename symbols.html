@@ -182,7 +182,7 @@
         volume = mic.getLevel() * 1000;
         console.log(volume)
         // Map overall volume to m (ensuring it's an integer between 1 and 16)
-        m = int(map(volume, 0, 10, 1, 16));
+        m = int(map(volume, 0, 5, 1, 16));
 
         // Analyze the sound's frequency spectrum
         let spectrum = fft.analyze();

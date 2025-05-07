@@ -5,33 +5,309 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>a-of-a-k</title>
-    <link rel="stylesheet" type="text/css" href="./styles.css" />
+    <!-- <link rel="stylesheet" type="text/css" href="./styles.css" /> -->
   </head>
 
   <style>
+    @font-face {
+            font-family: 'Trench';
+            src: url('itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf') format('opentype');
+        }
+
+
+    
+    body, html {
+      height: 100%;
+      margin: 0;
+      overflow-y: auto;
+    }
+
     body{
-        background-size: 4vw 4vw; /* Set the size of the grid */
-   
-        background-image:
+    padding-left:2vw;
+    padding-top: 2vh;
+      background-size: 4vw 4vw; /* Set the size of the grid */
+      background-image:
     linear-gradient(to right, #F25C05 0.01px, transparent 1px),
     linear-gradient(to bottom, #F25C05 0.01px, transparent 1px);
-    height: 100%;
-    width: 10%;
+    
     }
-       
+
+    #sectionA {
+    position: relative;
+    min-height: 100vh;              /* fill one viewport */
+    overflow: hidden;
+  }
+
+  #sectionB {
+    position: relative;
+    min-height: 100vh;
+    background-color: #F25C05;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;   /* below sticky panels once they scroll away */
+  }
+  #sectionB h2 {
+    color: #fff;
+    font-size: 4vw;
+    text-align: center;
+    z-index: 999;
+  }
+
+  /* typography stuff */
+
+        h1{
+    font-family: 'Trench';
+      font-weight: 20;
+      font-size: 12vw;
+      padding-bottom:0vw;
+      line-height: 160px;
+      
+    margin:0vw;
+    color: #F25C05;
+      -webkit-text-fill-color: #F25C05; 
+      -webkit-text-stroke-width: 0.1vw;
+      -webkit-text-stroke-color: #fff;
+      
+    }
+
+    h2{
+      
+      font-family: 'Trench';
+        font-weight: 20;
+        font-size: 3vw;
+        padding-bottom:1vw;
+      margin:0vw;
+      color: #F25C05;
+        
+      }
+
+      h3{
+  
+  font-family: 'Trench';
+     font-weight: 90;
+     font-size: 2vw;
+     padding-bottom:0vw;
+   margin:0vw;
+   color: #F25C05;
+   
+  }
+
+    alt{
+      font-feature-settings: "ss01";
+      -moz-font-feature-settings: "ss01";
+      -webkit-font-feature-settings: "ss01";
+      
+    }
+
+    li, p{
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+    Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+
+    /* font-family: 'Trench'; */
+    color: #F25C05;
+    background-color: #fff;
+   font-size: 1.2vw;
+   padding-bottom:0vw;
+    
+ }
+
+ a{
+  font-family: 'Trench';
+  color: #F25C05;
+  font-size: 3vw;
+  font-style: italic;
+  text-decoration: none;
+  
+ }
+ .btn {
+  font-family: 'Trench';
+  font-weight: 100;
+  border: 2px solid #F25C05;
+  background-color: rgba(255, 255, 255, 10);
+  color: #F25C05;
+  padding: 7px 14px;
+  font-size: 2vw;
+  cursor: pointer;
+    border-radius: 40px;
+  }
+
+
+ 
+
+  .btn:hover{
+    color: black;
+    border: 2px solid #000;
+     }
+
+
+#altbutton{
+border: 2px solid #fff;
+background-color: #F25C05;
+color: #fff;
+}
+
+
+#altbutton:hover{
+  background-color: #311d1d;
+}
+
+
+  .bigger{
+    font-size: 5vw;
+  }
+
+  .fixedonscreen{
+  position:fixed; 
+  z-index: 2;
+  }
+             
+  img{
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: flex;
+    display:inline-flex;
+    border-radius: 4px;
+  }
+
+  img.draggable {
+    position: absolute; 
+    top: 100px;         /* initial position: adjust as needed */
+    left: 100px;        /* initial position: adjust as needed */
+    width: 120px;  /* Adjust width to your liking */
+    height: 120px; /* Adjust height to your liking */
+    border: 2px solid #e4c753;
+    cursor: grab; 
+    user-select: none;  /* prevent text selection when dragging */
+  }
+
+  img.draggable:active {
+    cursor: grabbing;
+  }
+
+  video{
+    border-radius: 4px;
+  }
+
+  video.draggable {
+    position: absolute;
+    width: 120px;  /* Adjust width to your liking */
+    height: 120px; /* Adjust height to your liking */
+    border: 2px solid #e4c753;
+    cursor: grab;
+    user-select: none; /* Prevent accidental text selection while dragging */
+  }
+
+  /* Show "grabbing" cursor on mousedown */
+  video.draggable:active {
+    cursor: grabbing;
+  }
+
+  .info-container {
+    position: fixed;
+    top: 50%;
+  width: 20%;
+    left: 5%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 10px;
+    
+    z-index: 0;
+    
+  }
+
+  .panel-container {
+    position: fixed;
+    top: 50%;
+  
+    right: 5%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    padding: 10px;
+    /* This z-index ensures panels are above all draggable media */
+    z-index: 100;
+   
+    
+    
+}
+
+.panels-hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none; /* avoid accidental clicks when hidden */
+  }
+
+  .filter-panel {
+    position: fixed;
+    top: 20%;
+    right: 0;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 10px;
+    
+  }
+  .filter-button {
+    font-family: 'Trench';
+  font-weight: 100;
+  
+  border: 2px solid #F25C05;
+  background-color: #e4c753;
+  color: #F25C05;
+  padding: 7px 14px;
+  font-size: 1vw;
+  cursor: pointer;
+  text-align: center;
+    border-radius: 40px;
+    transition: background-color 0.3s;
+  }
+  /* When a filter is active, highlight the button */
+  .filter-button.active {
+    background: #F25C05;
+    color: #fff;
+    border-color: #fff;
+    font-weight: bold;
+  }
+
+  /* Hidden elements: use display: none */
+  .hidden {
+    display: none !important;
+  }
+
+  .slider-panel {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 5px;
+    }
+    .slider-panel label {
+      font-family: 'Trench';
+      color: #F25C05;
+      font-weight: bold;
+
+    }
+    #sizeSlider {
+      accent-color: #F25C05;
+      width: 120px;
+    }
    
    
   </style>
 
 
 <main>
-  
-   
-    
-  <section style = " 
-    z-index: 2; ">
 
-</section>
+  <section id="sectionA">
+
+
 
 <div class="info-container">
     <a href="./index.html"><button class="btn" style="font-size: 1rem;">⇠go back</button></a>
@@ -193,31 +469,21 @@
   <img src="./assets/actions/gesture-vids/ 10.png"   class="draggable pinched crouching by-hand rice colored">
   <img src="./assets/actions/gesture-vids/ 11.png"   class="draggable pinched crouching by-hand rice white">
   
-  
 
 
-  
- 
-
-
- 
-  
-
-
-
-  <!-- <section id="row" class="fixedonscreen" style="top:0%; 
-  left:0%; height: 100%; padding-top: 2rem;">
-  <div class="row">
-  
-      <a href="./index.html"><button class="btn" >⇠</button></a>
-    
-  </div>
-  </section> -->
-
-  
+</section>
+<section id="sectionB" style="height: 100vh; background-color: #F25C05; display: flex; align-items: center; justify-content: center;">
+  <h2 style="color: white; font-family: 'Trench'; font-size: 4vw; text-align: center;">
+      Welcome to Section B
+  </h2>
+</section>
 </main>
 
 <script>
+
+
+
+
     window.addEventListener('DOMContentLoaded', () => {
       const draggableItems = document.querySelectorAll('.draggable');
       const filterButtons  = document.querySelectorAll('.filter-button');

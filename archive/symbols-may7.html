@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Symbols Scrollbar</title>
+  <style>
+
+@font-face {
+    font-family: 'Trench';
+    src: url('itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf') format('opentype'); 
+}
+
+@font-face {
+    font-family: 'PP Mori';
+    src: url('itf-trenches/PPMori-SemiBold.otf') format('opentype');
+   
+}
+
+    * {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body, html {
+  height: 100%;
+  
+  overflow: hidden;
+}
+
+.container {
+  display: flex;
+  height: 100vh;
+  position: relative;
+}
+
+.scrollable-content {
+  background-color: #e26126;
+  overflow-y: scroll;
+  padding: 20px;
+  position: relative;
+  order: 0; flex: 2;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none;  /* IE 10+ */
+}
+.scrollable-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari */
+}
+
+/* when full-mode is active */
+.container.full-mode .scrollable-content {
+  flex: 1 0 100%;  /* take 100% of width */
+}
+.container.full-mode .fixed-right {
+  display: none;   /* hide the fixed panel */
+}
+.container.full-mode .custom-scrollbar {
+  order: 2;        /* move scrollbar to right edge */
+}
+
+.top-bar {
+  position: sticky;
+  top: 0;
+  background-color: #e26126;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding-bottom: 10px;
+}
+
+
+.back-button {
+font-family: 'Trench';
+  background-color: white;
+  color: #e26126;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 20px;
+  font-size: 20px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.section-title {
+  font-size: 24px;
+  color: #e6d063;
+}
+
+.custom-scrollbar {
+  order: 1;
+  width: 60px;
+  background-color: #fff;
+  background-image: radial-gradient( #e6d063 1.5px, transparent 1px);
+  /* border: 2px solid #e26126; */
+  /* border: 0px 0px 2px 2px solid #e26126; */
+  border: none;
+  border-color: #e26126;
+  border-right-style: solid;
+  border-left-style: solid;
+  border-width: 2px;
+  background-size: 6px 6px;
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+}
+
+.track {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  
+
+  
+}
+
+.thumb {
+  height: 50%;
+  width: 100%;
+  background-color: #e6d063;
+  color: white;
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  font-weight: bold;
+  font-size: 20px;
+  border-radius: 30px;
+  border: none;
+  border-color: #e26126;
+  border-top-style: solid;
+  border-bottom-style: solid;
+  border-width: 2px;
+   display: flex;
+  align-items: center;
+  justify-content: center;
+  position: absolute;
+  left: 0;
+  right: 0;
+  margin: auto;
+  cursor: pointer;
+}
+
+.fixed-right {
+  flex: 1;
+  order: 2; 
+  background-color: white;
+  /* border: 2px solid #e26126; */
+  padding: 40px;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end; /* push to bottom */
+  justify-content: flex-start; /* align left */
+}
+
+.statement-box {
+  font-size: 24px;
+  color: #e26126;
+  line-height: 1.5;
+}
+
+.statement-box p {
+  
+}
+
+.text-box {
+  font-size: 20px;
+  color: #fff;
+  line-height: 1.3;
+}
+
+h2{
+    font-family: 'Trench';
+}
+
+h3{
+    font-family: 'PP Mori';
+    font-size: 1.5rem;
+}
+
+p{
+    font-family: 'PP Mori';
+}
+
+@keyframes slide-out-up {
+  from { transform: translateY(0); opacity: 1 }
+  to   { transform: translateY(-100%); opacity: 0 }
+}
+
+@keyframes slide-out-down {
+  from { transform: translateY(0); opacity: 1 }
+  to   { transform: translateY(100%); opacity: 0 }
+}
+
+@keyframes rise-in {
+  from { transform: translateY(100%); opacity: 0 }
+  to   { transform: translateY(0);   opacity: 1 }
+}
+
+@keyframes fall-in {
+  from { transform: translateY(-100%); opacity: 0 }
+  to   { transform: translateY(0);     opacity: 1 }
+}
+
+.slide-out-up    { animation: slide-out-up    0.5s ease forwards }
+.slide-out-down  { animation: slide-out-down  0.5s ease forwards }
+.rise-in         { animation: rise-in         0.5s ease forwards }
+.fall-in         { animation: fall-in         0.5s ease forwards }
+
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Scrollable content area -->
+    <div class="scrollable-content" id="scrollable-content">
+      <div class="top-bar">
+        
+        <a href="./index.html"> <button class="back-button">  ⇠BACK</button></a>
+       
+        <h2 class="section-title">SYMBOLS</h2>
+      </div>
+      <div class="text-box">
+        <!-- fill this div with tall content to make scrolling obvious -->
+         <p>
+          "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+          </p>
+          <br>
+          <p>
+            Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC
+"Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+
+          </p>
+          <br>
+
+          <p>
+            1914 translation by H. Rackham
+"But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?"
+
+          </p>
+          <br>
+
+
+          <p>
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum."
+            </p>
+            <br>
+            <p>
+              Section 1.10.32 of "de Finibus Bonorum et Malorum", written by Cicero in 45 BC
+  "Sed ut perspiciatis unde omnis iste natus error sit voluptatem accusantium doloremque laudantium, totam rem aperiam, eaque ipsa quae ab illo inventore veritatis et quasi architecto beatae vitae dicta sunt explicabo. Nemo enim ipsam voluptatem quia voluptas sit aspernatur aut odit aut fugit, sed quia consequuntur magni dolores eos qui ratione voluptatem sequi nesciunt. Neque porro quisquam est, qui dolorem ipsum quia dolor sit amet, consectetur, adipisci velit, sed quia non numquam eius modi tempora incidunt ut labore et dolore magnam aliquam quaerat voluptatem. Ut enim ad minima veniam, quis nostrum exercitationem ullam corporis suscipit laboriosam, nisi ut aliquid ex ea commodi consequatur? Quis autem vel eum iure reprehenderit qui in ea voluptate velit esse quam nihil molestiae consequatur, vel illum qui dolorem eum fugiat quo voluptas nulla pariatur?"
+  
+            </p>
+            <br>
+  
+            <p>
+              1914 translation by H. Rackham
+  "But I must explain to you how all this mistaken idea of denouncing pleasure and praising pain was born and I will give you a complete account of the system, and expound the actual teachings of the great explorer of the truth, the master-builder of human happiness. No one rejects, dislikes, or avoids pleasure itself, because it is pleasure, but because those who do not know how to pursue pleasure rationally encounter consequences that are extremely painful. Nor again is there anyone who loves or pursues or desires to obtain pain of itself, because it is pain, but because occasionally circumstances occur in which toil and pain can procure him some great pleasure. To take a trivial example, which of us ever undertakes laborious physical exercise, except to obtain some advantage from it? But who has any right to find fault with a man who chooses to enjoy a pleasure that has no annoying consequences, or one who avoids a pain that produces no resultant pleasure?"
+  
+            </p>
+            <br>
+
+
+
+
+         
+        <div style="height: 1500px;"></div>
+      </div>
+    </div>
+
+    <!-- Custom scrollbar -->
+    <div class="custom-scrollbar">
+      <div class="track">
+        <div class="thumb" id="scroll-thumb"><h3 style="color: #e26126;">symbols</h3></div>
+      </div>
+    </div>
+
+    <!-- Fixed text section -->
+    <div class="fixed-right">
+      <div class="statement-box" id="fixed-text">
+        <p>
+          Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet
+          dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper
+          suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in
+          vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan
+          et iusto odio.
+        </p>
+      </div>
+    </div>
+  </div>
+
+ 
+</body>
+
+<script>
+   const thumb = document.getElementById('scroll-thumb');
+
+   const scrollContent = document.getElementById('scrollable-content');
+const fixedTextEl  = document.getElementById('fixed-text');
+const originalHTML = fixedTextEl.innerHTML;
+let changed = false;
+let lastY = 0;
+
+scrollContent.addEventListener('scroll', () => {
+  const y = scrollContent.scrollTop;
+  const dir = y > lastY ? 'down' : 'up';
+  const threshold = scrollContent.clientHeight;
+
+  if (!changed && y > threshold) {
+    swapTo('<p>hello text text i have changed</p>', dir);
+    changed = true;
+  }
+  else if (changed && y <= threshold) {
+    swapTo(originalHTML, dir);
+    changed = false;
+  }
+
+  lastY = y;
+});
+
+function swapTo(html, direction) {
+  const oldP = fixedTextEl.querySelector('p');
+  const newP = document.createElement('p');
+  newP.innerHTML = html.replace(/^<p>|<\/p>$/g, '');
+
+  if (direction === 'down') {
+    // down-scroll: old lorem slides up, new hello rises in
+    fixedTextEl.appendChild(newP);
+    oldP.classList.add('slide-out-up');
+    newP.classList.add('rise-in');
+  } else {
+    // up-scroll: old hello slides down, new lorem falls in
+    fixedTextEl.insertBefore(newP, oldP);
+    oldP.classList.add('slide-out-down');
+    newP.classList.add('fall-in');
+  }
+
+  oldP.addEventListener('animationend', () => {
+    oldP.remove();
+    newP.classList.remove('rise-in', 'fall-in');
+  }, { once: true });
+}
+
+
+
+
+
+function updateThumbPosition() {
+  const containerHeight = scrollContent.clientHeight;
+  const scrollHeight = scrollContent.scrollHeight;
+  const scrollTop = scrollContent.scrollTop;
+
+  const trackHeight = containerHeight;
+  const thumbHeight = trackHeight / 2;
+  const maxThumbTop = trackHeight - thumbHeight;
+
+  const scrollPercent = scrollTop / (scrollHeight - containerHeight);
+  const thumbTop = scrollPercent * maxThumbTop;
+
+  thumb.style.top = `${thumbTop}px`;
+
+  // dynamic border-radius
+  if (scrollTop === 0) {
+    // at top
+    thumb.style.borderTopLeftRadius = '0';
+    thumb.style.borderTopRightRadius = '0';
+    thumb.style.borderBottomLeftRadius = '30px';
+    thumb.style.borderBottomRightRadius = '30px';
+  } else if (scrollTop + containerHeight >= scrollHeight - 1) {
+    // at bottom
+    thumb.style.borderTopLeftRadius = '30px';
+    thumb.style.borderTopRightRadius = '30px';
+    thumb.style.borderBottomLeftRadius = '0';
+    thumb.style.borderBottomRightRadius = '0';
+  } else {
+    // middle scroll
+    thumb.style.borderTopLeftRadius = '30px';
+    thumb.style.borderTopRightRadius = '30px';
+    thumb.style.borderBottomLeftRadius = '30px';
+    thumb.style.borderBottomRightRadius = '30px';
+  }
+}
+
+const container = document.querySelector('.container');
+const vh        = window.innerHeight;
+let   sectionC  = false;
+
+scrollContent.addEventListener('scroll', () => {
+  const y = scrollContent.scrollTop;
+
+  // existing logic for swapping A↔B…
+  // ——> your swapTo/html logic here
+
+  // now check for section C trigger:
+  if (!sectionC && y > 2 * vh) {
+    container.classList.add('full-mode');
+    sectionC = true;
+  }
+  else if (sectionC && y <= 2 * vh) {
+    container.classList.remove('full-mode');
+    sectionC = false;
+  }
+});
+
+
+
+scrollContent.addEventListener('scroll', updateThumbPosition);
+window.addEventListener('load', updateThumbPosition);
+window.addEventListener('resize', updateThumbPosition);
+window.addEventListener('load', () => scrollContent.dispatchEvent(new Event('scroll')))
+</script>
+</html>

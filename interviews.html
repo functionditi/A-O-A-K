@@ -1,75 +1,851 @@
 <!DOCTYPE html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>a-of-a-k</title>
-    <link rel="stylesheet" type="text/css" href="./styles.css" />
+    <script src="../libraries/p5/p5.js"></script>
+    <script src="../libraries/p5/p5.sound.min.js"></script>
+    <link rel="stylesheet" type="text/css" href="../styles.css">
+    <meta charset="utf-8" />
+
+
     <style>
-      body{
-          background-size: 4vw 4vw; /* Set the size of the grid */
-     
-          background-image:
-      linear-gradient(to right, #F25C05 0.01px, transparent 1px),
-      linear-gradient(to bottom, #F25C05 0.01px, transparent 1px);
-      height: 200%;
-      
-      }
-         
-     
-     
-    </style>
-  </head>
 
-
-<main>
-  
-  
-  
-
-  <section style = " 
-    z-index: 1; ">
-
-
-    <h1>INTERVIEWS</h1>
-    <br>
-    
-    <!-- <div class="column textbox">
-      <p>
         
-        Vijaya Mohan an Indian Singaporean is a renowned and acclaimed Rangoli artiste (Indian courtyard painting and floor art). She holds the Guinness World Record for the largest Rangoli in the World and additionally holds 29 Singapore records in various categories ( the largest, longest, most number of people etc). 
-          </p>
-    </div> -->
+            html, body {
+            margin: 0;
+            padding: 0;
+            background-color: #e4c753;
+            }
+              /* Make sure the canvas is positioned absolutely with a low z-index */
+        canvas {
+          position: absolute;
+          top: 0;
+          left: 0;
+          z-index: -1;
+        }
 
- 
-  </section>
+        /* Ensure the button is positioned above with a higher z-index */
+        .btn {
+          position: fixed;
+          bottom: 20px; /* adjust distance from the bottom as needed */
+          left: 6%;
+          transform: translateX(-50%);
+          z-index: 10;
+          font-size: 1rem;
+        }
 
-  <section class="image-text-section">
-    <div class="image-container">
-      <img src="./assets/vijaya-mohan.jpg" alt="Descriptive Alt Text" />
-    </div>
-    <div class="text-container">
-      <h2>VIJAYA MOHAN</h2>
-      <p>
-        Vijaya Mohan is a renowned rangoli artist in Singapore, known for using her art to foster community connections and promote emotional well-being through workshops and art therapy. A Guinness World Record holder for the world’s largest rangoli, she continues to inspire inclusivity and cultural appreciation through her vibrant, collaborative creations.
-      </p>
-      <a href="./vijaya.html"><button class="read-more-btn">READ MORE</button></a>
-      
-    </div>
-  </section>
+    </style>
+
+  </head>
+  <body>
+    <main>
+    </main>
+    <a href="../index.html"><button class="btn" >⇠go back</button></a>
+
+    <script>
+                    // Global variables & arrays:
+            let pullis = [];       // List of all grid dots.
+            let framework = [];    // Each edge: { x: currentIndex, y: nextIndex, reverse: bool, vector: {dx,dy}, word }
+            let capArcs = [];      // Cap arcs drawn when terminating a branch.
+            let startingPoints = [0];  // Dot 0 is the initial starting point.
+
+            //let size = 18;          // Grid is size x size.
+            let rows=9, cols=15;
+            let spacing = 80;      // Spacing between grid dots.
+
+            let dfsStack = [];     // Current DFS stack (indices).
+            let visited = new Set();
+            let lastVector = null; // Stores the most recent movement vector.
+            let colormode;
+
+            let currentSpeaker = null; // will hold "Aditi" or "Aarati"
+            let speakerDivAditi;
+            let speakerDivOther;
+            let conversationDiv;
+            let currentWordIndex = 0;
+
+            let speakerSections = [];
+
+            let sectioncheck;
+
+            
+
+
+
+            // Graphics layers:
+            let gridLayer, drawingLayer, pointerLayer;
+
+
+
+            let red="#ef4b41";
+            let blue="#3264a6";
+            let yellow="#e4c753"
+            let lightblue="#b8d9d5";
+            let sw=6;
+            // ------------- TRANSCRIPT TEXT -------------
+            // Replace the text below with your full transcript.
+
+
+            let transcriptText = "";
+            let transcriptWords = [];
+            let myFont;
+
+            function preload(){
+            myFont=loadFont('./itf-trenches/PPMori-SemiBold.otf');
+
+            transcriptText = loadStrings('./assets/transcript.txt', (lines) => {
+                transcriptText = lines.join(' ');
+                transcriptWords = transcriptText.split(/\s+/);
+            });
+            }
+
+            
+
+            function setup() {
+            createCanvas((cols + 1) * spacing, (rows + 1) * spacing);
+            //background(187, 214, 213)
+            background(228, 199, 83);
+            // noLoop(); // We'll use redraw() on key presses.
+            1
+            // Create separate graphics layers.
+            gridLayer = createGraphics(width, height);
+            drawingLayer = createGraphics(width, height);
+            pointerLayer = createGraphics(width, height);
+
+            //gridLayer.background(lightblue);
+
+            // Set up gridLayer (permanent background).
+            
+            // if (currentSpeaker === "Aditi") gridLayer.background(lightblue);
+            // if (currentSpeaker === "Aarati") gridLayer.background(yellow);
+            //gridLayer.background(lightblue);
+            gridLayer.fill(0);
+            gridLayer.noStroke();
+
+            resetPattern(); // Initialize state and grid dots.
+            
+
+            // Draw grid dots permanently.
+            for (let i = 0; i < pullis.length; i++) {
+                gridLayer.fill(getDrawingColor());
+                gridLayer.ellipse(pullis[i].x, pullis[i].y, 5, 5);
+            }
+
+            // Initially render decorations (which may be just the starting DFS tip).
+            renderPermanentLayer();
+            drawPointer();
+            redraw();
+
+            drawingLayer.textFont(myFont);
+
+            conversationDiv = createDiv();
+            conversationDiv.style("position", "fixed");
+            conversationDiv.style("top", "20px");
+            conversationDiv.style("right", "20px");
+            conversationDiv.style("padding", "10px");
+            conversationDiv.style("background-color", "white");
+            conversationDiv.style("border", "2px solid black");
+            conversationDiv.style("border-radius", "8px");
+            conversationDiv.style("font-family", "PP Mori, sans-serif");
+            conversationDiv.style("font-size", "12px");
+            conversationDiv.style("max-width", "200px");
+
+
+            speakerDivAditi = createDiv();
+            speakerDivOther = createDiv();
+
+            // Aditi’s info box
+            speakerDivAditi.style("position", "fixed");
+            speakerDivAditi.style("top", "120px");
+            speakerDivAditi.style("right", "20px");
+            speakerDivAditi.style("padding", "10px");
+            speakerDivAditi.style("background-color", "white");
+            speakerDivAditi.style("border", "2px solid red");
+            speakerDivAditi.style("border-radius", "8px");
+            speakerDivAditi.style("font-family", "PP Mori, sans-serif");
+            speakerDivAditi.style("font-size", "12px");
+            speakerDivAditi.style("max-width", "200px");
+
+            // Other speaker’s info box (placed below Aditi)
+            speakerDivOther.style("position", "fixed");
+            speakerDivOther.style("top", "300px");
+            speakerDivOther.style("right", "20px");
+            speakerDivOther.style("padding", "10px");
+            speakerDivOther.style("background-color", "white");
+            speakerDivOther.style("border", "2px solid #001f4d");  // dark blue border
+            speakerDivOther.style("border-radius", "8px");
+            speakerDivOther.style("font-family", "PP Mori, sans-serif");
+            speakerDivOther.style("font-size", "12px");
+            speakerDivOther.style("color", "#001f4d");             // dark blue text
+            speakerDivOther.style("max-width", "200px");
+
+
+            // speakerContainer.style("display", "flex");
+            // speakerContainer.style("flex-direction", "column");
+            // speakerContainer.style("gap", "10px");
+
+            currentSpeaker = "Aarati";  // or whichever initial
+            updateSpeakerInfo();
+            // Create slider label
+            let sliderLabel = createDiv("Speed Control");
+            sliderLabel.style("position", "fixed");
+            sliderLabel.style("top", "430px");
+            sliderLabel.style("right", "150px");
+            sliderLabel.style("font-family", "PP Mori, sans-serif");
+            sliderLabel.style("font-size", "12px");
+            sliderLabel.style("color", "#FFF")
+
+            // Create slider
+            speedSlider = createSlider(2, 60, 16, 2);  // min, max, default, step
+            speedSlider.style("position", "fixed");
+            speedSlider.style("top", "445px");
+            speedSlider.style("right", "30px");
+            speedSlider.style("width", "200px");
+            speedSlider.style("accent-color", "#F25C05");
+
+            // Create dropdown label
+            let dropdownLabel = createDiv("Select Interview");
+            dropdownLabel.style("position", "fixed");
+            dropdownLabel.style("top", "480px");
+            dropdownLabel.style("right", "145px");
+            dropdownLabel.style("font-family", "PP Mori, sans-serif");
+            dropdownLabel.style("font-size", "12px");
+            dropdownLabel.style("color", "#FFF")
+
+            // Create dropdown
+            interviewSelect = createSelect();
+            interviewSelect.style("position", "fixed");
+            interviewSelect.style("top", "500px");
+            interviewSelect.style("right", "35px");
+            interviewSelect.style("width", "200px");
+            interviewSelect.style("background-color", "#F25C05");
+            interviewSelect.style("color", "#fff");
+            interviewSelect.option('Select...', '');
+            interviewSelect.option("Aarati Akkapedi", "&");
+            interviewSelect.option("Vijaya Mohan", "&&");
+            interviewSelect.option("Dr. Vijaya Nagarajan", "&&&");
+
+            // Handle selection change
+            interviewSelect.changed(() => {
+                let marker = interviewSelect.value();
+                if (marker !== '') {
+                    jumpToInterview(marker);
+                }
+            });
+
+
+          
+            
+            }
+
+            function draw() {
+              
+            // Composite layers: grid, permanent kolam pattern, then temporary DFS pointer.
+            image(gridLayer, 0, 0);
+            image(drawingLayer, 0, 0);
+            // image(pointerLayer, 0, 0);
+            let sliderValue = speedSlider.value();
+            if (frameCount % sliderValue == 0) {
+
+            
+            let dir=int(random(2));
+            switch(dir){
+                case 0: extendSameDirection();
+                break;
+                case 1: extendTurn();
+                break;
+            }
+            renderPermanentLayer();
+            drawPointer();
+            redraw();
+            }
+            
+            // } else if (key === '2') {
+            //   extendTurn();
+            
+            }
+
+            // ------------- KEY HANDLING -------------
+            function keyPressed() {
+            // Clear the temporary pointer layer.
+            pointerLayer.clear();
+
+            // Process key events:
+            if (key === '1') {
+                extendSameDirection();
+            } else if (key === '2') {
+                extendTurn();
+            } else if (key === '0') {
+                terminateBranch();
+            }
+            
+            // After updating DFS state, re-render all permanent decorations.
+            renderPermanentLayer();
+            drawPointer();
+            redraw();
+            }
+
+            // ------------- RENDERING THE PERMANENT KOLAM -------------
+            function renderPermanentLayer() {
+            drawingLayer.clear();
+            drawingLayer.push();
+            let angleArray = [];
+            // Loop through all framework edges and draw both the base line and decorations.
+            for (let i = 0; i < framework.length; i++) {
+                let edge = framework[i];
+                let dot1 = pullis[edge.x];
+                let dot2 = pullis[edge.y];
+                
+                // // Draw basic line.
+                // drawingLayer.stroke(220);
+                // drawingLayer.strokeWeight(sw);
+                // drawingLayer.line(dot1.x, dot1.y, dot2.x, dot2.y);
+                
+                // Compute midpoint and angle.
+                let tempX = (dot1.x + dot2.x) / 2;
+                let tempY = (dot1.y + dot2.y) / 2;
+                let r_angle = atan2(dot2.y - dot1.y, dot2.x - dot1.x);
+                let angleDegrees = degrees(r_angle);
+                angleArray.push(angleDegrees);
+                
+                // Draw decorations.
+                if (startingPoints.includes(edge.x)) {
+                drawLineByAngleOnLayer(drawingLayer, angleDegrees, tempX, tempY, spacing, true);
+                drawingLayer.stroke(getDrawingColor());
+                loopAroundOnLayer(drawingLayer, dot1, r_angle, PI / 4, PI * 7 / 4);
+                } else {
+                let prevA = angleArray[i - 1] || 0;
+                let aDiff = angleDegrees - prevA;
+                if (i % 2 === 1) {
+                    if (!(aDiff === 90 || aDiff === -270)) {
+                    applyLoopAndStrokeOnLayer(drawingLayer, aDiff, r_angle, dot1);
+                    }
+                    drawLineByAngleOnLayer(drawingLayer, angleDegrees, tempX, tempY, spacing);
+                } else {
+                    if (aDiff === 90 || aDiff === -270) {
+                    applyLoopAndStrokeOnLayer(drawingLayer, aDiff, r_angle, dot1);
+                    } else if (aDiff === 0) {
+                    applyLoopAndStrokeOnLayer(drawingLayer, aDiff, r_angle + PI, dot1);
+                    }
+                    drawLineByAngleOnLayer(drawingLayer, angleDegrees, tempX, tempY, spacing, true);
+                }
+                }
+                
+                // Draw the word (if it exists) at the midpoint.
+
+                if (edge.word=="&") sectioncheck=0;
+                if (edge.word=="&&") sectioncheck=1;
+                if (edge.word=="&&&") sectioncheck=2;
+
+                if (edge.word && edge.word !== "" && edge.word !== "Aditi" && edge.word !== "Aarati" && edge.word !== "Vijaya" && edge.word !== "Nagarajan" && edge.word!="&" && edge.word!="&&" && edge.word!="&&&") {
+                drawingLayer.noStroke();
+                drawingLayer.textSize(18);
+                drawingLayer.textAlign(CENTER, CENTER);
+                
+                let tw = textWidth(edge.word) * 2;
+                let th = 25;
+                
+                if (edge.speaker === "Aditi") {
+                    // For Aditi: red rectangle with white border and white text.
+                    drawingLayer.fill(red);
+                    drawingLayer.stroke("#fff");
+                    drawingLayer.strokeWeight(2);
+                    drawingLayer.rect(tempX - tw / 2, tempY - th / 2, tw, th, 5);
+                    drawingLayer.fill(yellow);
+                    drawingLayer.rect(50, 10, 100, 30, 5);
+                    drawingLayer.noStroke();
+                    drawingLayer.fill("#fff");
+                    drawingLayer.text(edge.word, tempX, tempY);
+                    drawingLayer.fill(red);
+                    drawingLayer.text("ADITI NETI", 100, 10 + 30/2);
+
+                    
+                } else if (edge.speaker === "Aarati") {
+                    // For Aarati: yellow rectangle with white border and red text.
+                    drawingLayer.fill(lightblue);
+                    drawingLayer.stroke("#FFF");
+                    drawingLayer.strokeWeight(2);
+                    drawingLayer.rect(tempX - tw / 2, tempY - th / 2, tw, th, 5);
+                    drawingLayer.fill(blue);
+                    drawingLayer.rect(160, 10, 180, 30, 5);
+                    drawingLayer.noStroke();
+                    drawingLayer.fill(blue);
+                    drawingLayer.text(edge.word, tempX, tempY);
+                    drawingLayer.fill("#fff");
+                    drawingLayer.text("AARATI AKKAPEDI", 250, 10 + 30/2);
+
+
+                } else if (edge.speaker === "Vijaya") {
+                    // For Vijaya: dark blue rectangle with white border and yellow text.
+                    drawingLayer.fill(blue);        // rectangle fill: dark blue
+                    drawingLayer.stroke("#fff");          // white border
+                    drawingLayer.strokeWeight(2);
+                    drawingLayer.rect(tempX - tw / 2, tempY - th / 2, tw, th, 5);
+                    drawingLayer.fill(lightblue);
+                    drawingLayer.rect(350, 10, 160, 30, 5);
+                    drawingLayer.noStroke();
+                    drawingLayer.fill(yellow);            // text: yellow
+                    drawingLayer.text(edge.word, tempX, tempY);
+                    drawingLayer.fill(red);
+                    drawingLayer.text("VIJAYA MOHAN", 430, 10 + 30/2);
+                } else if (edge.speaker === "Nagarajan") {
+                    // For Nagarajan: dark blue rectangle with white border and yellow text.
+                    drawingLayer.fill(yellow);        // rectangle fill: dark blue
+                    drawingLayer.stroke("#fff");          // white border
+                    drawingLayer.strokeWeight(2);
+                    drawingLayer.rect(tempX - tw / 2, tempY - th / 2, tw, th, 5);
+                    drawingLayer.fill(blue);
+                    drawingLayer.rect(520, 10, 240, 30, 5);
+                    drawingLayer.noStroke();
+                    drawingLayer.fill(blue);            // text: yellow
+                    drawingLayer.text(edge.word, tempX, tempY);
+                    drawingLayer.fill(yellow);
+                    drawingLayer.text("DR. VIJAYA NAGARAJAN", 635, 10 + 30/2);
+                } else {
+                    // Fallback styling.
+                    drawingLayer.fill(getDrawingColor());
+                    drawingLayer.stroke("#fff");
+                    drawingLayer.strokeWeight(2);
+                    drawingLayer.rect(tempX - tw / 2, tempY - th / 2, tw, th, 5);
+                    drawingLayer.noStroke();
+                    drawingLayer.fill(getDrawingColor() === red ? "#fff" : red);
+                    drawingLayer.text(edge.word, tempX, tempY);
+                }
+                }
+
+                // drawingLayer.push();
+                
+                // drawin
+
+            }
+            
+            // Draw all cap arcs (e.g., when a branch terminates).
+            for (let arcInfo of capArcs) {
+                drawingLayer.push();
+                drawingLayer.stroke(blue); // Now blue.
+                loopAroundOnLayer(drawingLayer, arcInfo.dot, arcInfo.angle, arcInfo.start, arcInfo.stop);
+                // Optionally draw the word for the cap arc:
+                // if (arcInfo.word && arcInfo.word !== "") {
+                //   //drawingLayer.fill(0);
+                //   drawingLayer.noStroke();
+                //   drawingLayer.textSize(18);
+                //   drawingLayer.textAlign(CENTER, CENTER);
+                //   let tw=textWidth(arcInfo.word);
+                //   tw=tw*1.8;
+                //   let th=25;
+                //   if (colormode==0) drawingLayer.fill(red);
+                //    else if (colormode==1) drawingLayer.fill(yellow);
+                //    drawingLayer.stroke("#fff");
+                //    drawingLayer.strokeWeight(2);
+                //     drawingLayer.rect(arcInfo.dot.x-tw/2, arcInfo.dot.y-th/2, tw, th, 5, 5, 5, 5);
+                //      drawingLayer.noStroke();
+                //     if (colormode==0) drawingLayer.fill("#fff");
+                //   else if (colormode==1) drawingLayer.fill(red);
+                //   drawingLayer.text(arcInfo.word, arcInfo.dot.x, arcInfo.dot.y);
+                // }
+                drawingLayer.pop();
+            }
+            drawingLayer.pop();
+            }
+
+            // ------------- DFS POINTER -------------
+            function drawPointer() {
+            if (dfsStack.length > 0) {
+                let currentDot = pullis[dfsStack[dfsStack.length - 1]];
+                pointerLayer.fill(0, 255, 0);
+                pointerLayer.stroke(0);
+                pointerLayer.strokeWeight(sw);
+            // pointerLayer.ellipse(currentDot.x, currentDot.y, 10, 10);
+            }
+            }
+
+            // ------------- DFS & EDGE FUNCTIONS -------------
+            function extendSameDirection() {
+            if (dfsStack.length === 0) return;
+            let currentIndex = dfsStack[dfsStack.length - 1];
+            let currentDot = pullis[currentIndex];
+
+            if (!lastVector) {
+                return extendRandom(currentIndex);
+            }
+
+            let candidateX = currentDot.x + lastVector.dx * spacing;
+            let candidateY = currentDot.y + lastVector.dy * spacing;
+            let candidateIndex = findDotByCoord(candidateX, candidateY);
+
+            if (candidateIndex !== -1 && !visited.has(candidateIndex)) {
+                addEdge(currentIndex, candidateIndex, { dx: lastVector.dx, dy: lastVector.dy });
+            } else {
+                extendRandom(currentIndex);
+            }
+            }
+
+            function extendTurn() {
+            if (dfsStack.length === 0) return;
+            let currentIndex = dfsStack[dfsStack.length - 1];
+            let currentDot = pullis[currentIndex];
+
+            if (!lastVector) {
+                return extendRandom(currentIndex);
+            }
+
+            let turnLeft = random() < 0.5;
+            let newVector;
+            if (turnLeft) {
+                newVector = { dx: -lastVector.dy, dy: lastVector.dx };
+            } else {
+                newVector = { dx: lastVector.dy, dy: -lastVector.dx };
+            }
+
+            let candidateX = currentDot.x + newVector.dx * spacing;
+            let candidateY = currentDot.y + newVector.dy * spacing;
+            let candidateIndex = findDotByCoord(candidateX, candidateY);
+
+            if (candidateIndex !== -1 && !visited.has(candidateIndex)) {
+                addEdge(currentIndex, candidateIndex, newVector);
+            } else {
+                newVector = turnLeft
+                ? { dx: lastVector.dy, dy: -lastVector.dx }
+                : { dx: -lastVector.dy, dy: lastVector.dx };
+                candidateX = currentDot.x + newVector.dx * spacing;
+                candidateY = currentDot.y + newVector.dy * spacing;
+                candidateIndex = findDotByCoord(candidateX, candidateY);
+                if (candidateIndex !== -1 && !visited.has(candidateIndex)) {
+                addEdge(currentIndex, candidateIndex, newVector);
+                } else {
+                extendRandom(currentIndex);
+                }
+            }
+            }
+
+            function terminateBranch() {
+            if (dfsStack.length === 0) return;
+            let currentIndex = dfsStack[dfsStack.length - 1];
+            let currentDot = pullis[currentIndex];
+            let r_angle = lastVector ? atan2(lastVector.dy, lastVector.dx) + PI : 0;
+
+            // Pull next word (or empty string)
+            let word = transcriptWords.shift() || "";
+            currentWordIndex++;
+            // Refill transcriptWords if empty
+            if (transcriptWords.length === 0) {
+                transcriptWords = transcriptText.trim().split(/\s+/);
+            }
+
+            // Handle speaker‑change
+            if (word === "Aditi" || word === "Aarati" || word === "Vijaya" || word === "Nagarajan") {
+                if (currentSpeaker !== word) {
+                clearKolam();
+                currentSpeaker = word;
+                updateSpeakerInfo();
+
+                }
+                word = "";
+            }
+
+            capArcs.push({
+                dot: currentDot,
+                angle: r_angle,
+                start: PI/4,
+                stop: (dfsStack.length === 1 ? PI*9/4 : PI*7/4),
+                word: word
+            });
+
+            // Reverse the DFS path back to its root
+            while (dfsStack.length > 1) {
+                let childIndex = dfsStack.pop();
+                let parentIndex = dfsStack[dfsStack.length - 1];
+                let childDot = pullis[childIndex];
+                let parentDot = pullis[parentIndex];
+                let reverseVector = {
+                dx: (parentDot.x - childDot.x) / spacing,
+                dy: (parentDot.y - childDot.y) / spacing
+                };
+                addReverseEdge(childIndex, parentIndex, reverseVector);
+            }
+            dfsStack = [];
+            lastVector = null;
+
+            // Start a new branch if any dots remain unvisited
+            let unvisitedIndices = pullis.map((_, i) => i).filter(i => !visited.has(i));
+            if (unvisitedIndices.length > 0) {
+                let newSource = random(unvisitedIndices);
+                visited.add(newSource);
+                dfsStack.push(newSource);
+                startingPoints.push(newSource);
+            } else {
+                clearKolam();
+            }
+            }
+
+            function updateSpeakerInfo() {
+
+            console.log("We are in section", sectioncheck);
+            let aditiInfo = "<p style='margin:0; font-size:12px;'>Aditi Neti is a South Asian creative technologist and designer exploring the intersection of cultural traditions and technology. Through interviews and experiments, she investigates how Kolam, a traditional South Indian art form, can be reimagined using generative design and human-machine interaction.</p>";
+
+            let otherInfo = "";
+            let conversationInfo = "";
+
+            // Check which section the current word index falls into
+            let section = speakerSections.find(sec => currentWordIndex >= sec.start && currentWordIndex <= sec.end);
+
+            if (sectioncheck==0) {
+                speakerDivOther.style("border", "2px solid #3264a6");  // dark blue border
+                speakerDivOther.style("display", "block");
+                otherInfo = "<p style='margin:0; font-size:12px; color: #3264a6;'>Aarati Akkapeddi is a Telugu-American cross-disciplinary artist whose practice merges generative algorithms with cultural archives to explore diaspora, memory, and traditions like Kolam.</p>";
+                conversationInfo = "<b>aditi ↔ aarati</b>: a discussion focusing on kolams, encryption, algorithmic art, and the meditative, embodied aspects of traditional practices.";
+            } else if (sectioncheck==1) {
+                speakerDivOther.style("display", "block");
+                speakerDivOther.style("border", "2px solid #3264a6");  // dark blue border
+                otherInfo = "<p style='margin:0; font-size:12px; color: #3264a6;'>Vijaya Mohan is a renowned rangoli artist in Singapore, known for using her art to foster community connections and promote emotional well-being through workshops and art therapy.</p>";
+                conversationInfo = "<b>aditi ↔ vijaya mohan</b>: a conversation covering community engagement, therapeutic art, cross-cultural materials, and the rangoli practice in modern urban contexts.";
+            } else if (sectioncheck==2) {
+                speakerDivOther.style("display", "block");
+                speakerDivOther.style("border", "2px solid #3264a6");  // dark blue border
+                otherInfo = "<p style='margin:0; font-size:12px; color: #3264a6;'>Dr. Vijaya Nagarajan is an Associate Professor and author of *Feeding a Thousand Souls*, researching the philosophical, ecological, and ritual dimensions of kolam.</p>";
+                conversationInfo = "<b>aditi ↔ dr. vijaya nagarajan</b>: <br> a rich dialogue diving into the philosophical, ecological, and ritual meanings of kolam and the ethics of computational translations.";
+            } else {
+                speakerDivOther.style("display", "none");
+                conversationInfo = "<b>current conversation</b>: waiting to begin...";
+            }
+
+                      
+
+
+            conversationDiv.html(conversationInfo);
+            speakerDivAditi.html(aditiInfo);
+            speakerDivOther.html(otherInfo);
+        }
+
+        function jumpToInterview(marker) {
+            // Find the index of the marker in the **original full transcript**
+            let allWords = transcriptText.trim().split(/\s+/);
+            let index = allWords.findIndex(word => word === marker);
+
+            if (index !== -1) {
+                // Update transcriptWords to start fresh from that marker
+                transcriptWords = allWords.slice(index);
+                currentWordIndex = index;
+
+                // Update current speaker based on marker
+                if (marker === "&") {
+                    currentSpeaker = "Aarati";
+                    sectioncheck = 0;
+                } else if (marker === "&&") {
+                    currentSpeaker = "Vijaya";
+                    sectioncheck = 1;
+                } else if (marker === "&&&") {
+                    currentSpeaker = "Nagarajan";
+                    sectioncheck = 2;
+                }
+
+                updateSpeakerInfo();  // Refresh the speaker info box
+                clearKolam();         // Reset drawing state
+
+                console.log(`Jumped to ${marker} at index ${index}`);
+            } else {
+                console.log(`Marker ${marker} not found.`);
+            }
+        }
+
+
+        
 
 
 
 
-  <section id="row" class="fixedonscreen" style="top:0%; 
-  left:0%; height: 100%; padding-top: 4rem;">
-  <div class="row">
-  
-      <a href="./index.html"><button class="btn" >⇠</button></a>
-    
-  </div>
-  </section>
 
-  
-</main>
+
+            function getDrawingColor() {
+            // Use red for Aditi, yellow for Aarati, or default to blue.
+            if (currentSpeaker === "Aditi") return red;
+            if (currentSpeaker === "Aarati") return blue;
+            if (currentSpeaker === "Vijaya") return blue;
+            if (currentSpeaker === "Nagarajan") return "#FFF";
+            return blue;
+            }
+
+
+            function clearKolam() {
+            // Clear the drawing and pointer layers (keeping the permanent grid intact).
+            drawingLayer.clear();
+            pointerLayer.clear();
+            //background(187, 214, 213, 180);
+            //background(255, 210);
+            background(228, 199, 83, 210);
+            
+            
+            // Reset the DFS and framework state (but do not touch transcriptWords so that
+            // the transcript continues from where it left off).
+            framework = [];
+            dfsStack = [];
+            capArcs = [];
+            visited = new Set();
+            lastVector = null;
+            startingPoints = [];
+            
+            // Restart the DFS from dot 0.
+            visited.add(0);
+            dfsStack.push(0);
+            startingPoints.push(0);
+            }
+
+
+            function extendRandom(currentIndex) {
+            let currentDot = pullis[currentIndex];
+            let neighbors = getAdjacentUnvisited(currentDot);
+            if (neighbors.length > 0) {
+                let nextIndex = random(neighbors);
+                let nextDot = pullis[nextIndex];
+                let dx = (nextDot.x - currentDot.x) / spacing;
+                let dy = (nextDot.y - currentDot.y) / spacing;
+                addEdge(currentIndex, nextIndex, { dx, dy });
+            } else {
+                terminateBranch();
+            }
+            }
+
+            function addEdge(currentIndex, nextIndex, vector) {
+            // Pull the next token (or get empty string if none)
+            let word = transcriptWords.shift() || "";
+
+            // If we’ve consumed all words, refill from the original transcript
+            if (transcriptWords.length === 0) {
+                transcriptWords = transcriptText.trim().split(/\s+/);
+            }
+
+            // Handle speaker‑change tokens
+            if (word === "Aditi" || word === "Aarati" || word === "Vijaya" || word === "Nagarajan") {
+                if (currentSpeaker !== word) {
+                clearKolam();
+                currentSpeaker = word;
+                updateSpeakerInfo();
+
+                }
+                return;
+            }
+
+            // Otherwise add the edge as before
+            framework.push({
+                x: currentIndex,
+                y: nextIndex,
+                reverse: false,
+                vector: vector,
+                word: word,
+                speaker: currentSpeaker
+            });
+            visited.add(nextIndex);
+            dfsStack.push(nextIndex);
+            lastVector = vector;
+            }
+
+
+
+
+
+            function addReverseEdge(currentIndex, parentIndex, vector) {
+            framework.push({ x: currentIndex, y: parentIndex, reverse: true, vector: vector });
+            lastVector = vector;
+            }
+
+            function findDotByCoord(x, y) {
+            for (let i = 0; i < pullis.length; i++) {
+                if (pullis[i].x === x && pullis[i].y === y) {
+                return i;
+                }
+            }
+            return -1;
+            }
+
+            function getAdjacentUnvisited(dot) {
+            let indices = [];
+            for (let i = 0; i < pullis.length; i++) {
+                if (!visited.has(i) && isAdjacent(dot, pullis[i])) {
+                indices.push(i);
+                }
+            }
+            return indices;
+            }
+
+            function isAdjacent(dot1, dot2) {
+            return (abs(dot1.x - dot2.x) === spacing && dot1.y === dot2.y) ||
+                    (dot1.x === dot2.x && abs(dot1.y - dot2.y) === spacing);
+            }
+
+            // ------------- DECORATION HELPER FUNCTIONS -------------
+            // These functions draw onto a passed-in layer.
+
+            function drawLineByAngleOnLayer(layer, angleDegrees, tempX, tempY, spacing, reverse = false) {
+            const angle = (angleDegrees === 90 || angleDegrees === -90)
+                ? (reverse ? (3 * PI) / 4 : PI / 4)
+                : (reverse ? PI / 4 : (3 * PI) / 4);
+            drawDiagonalLineOnLayer(layer, tempX, tempY, spacing * 0.33, angle);
+            }
+
+            function drawDiagonalLineOnLayer(layer, midX, midY, lineLength, angle) {
+            let x1 = midX - cos(angle) * lineLength;
+            let y1 = midY - sin(angle) * lineLength;
+            let x2 = midX + cos(angle) * lineLength;
+            let y2 = midY + sin(angle) * lineLength;
+            layer.stroke(getDrawingColor());
+            layer.strokeWeight(sw);
+            layer.line(x1, y1, x2, y2);
+            }
+
+
+            function applyLoopAndStrokeOnLayer(layer, aDiff, r_angle, dot1) {
+            layer.stroke(blue);
+            if (aDiff === 0) {
+                loopAroundOnLayer(layer, dot1, r_angle, PI / 4, PI * 3 / 4);
+            } else if (aDiff === -90 || aDiff === 270) {
+                loopAroundOnLayer(layer, dot1, r_angle, PI / 4, PI * 5 / 4);
+            } else if (aDiff === 90 || aDiff === -270) {
+                loopAroundOnLayer(layer, dot1, r_angle + PI / 2, PI / 4, PI * 5 / 4);
+            }
+            }
+
+            function loopAroundOnLayer(layer, dot, theAngle, start, stop) {
+            layer.push();
+            layer.translate(dot.x, dot.y);
+            layer.rotate(theAngle);
+            layer.noFill();
+            layer.stroke(getDrawingColor());
+            layer.strokeWeight(sw);
+            layer.arc(0, 0, spacing * 0.66, spacing * 0.66, start, stop);
+            layer.pop();
+            }
+
+
+            // ------------- RESET & DOT CLASS -------------
+            function resetPattern() {
+            pullis = [];
+            framework = [];
+            dfsStack = [];
+            capArcs = [];
+            visited = new Set();
+            lastVector = null;
+            
+            // Create grid dots.
+            for (let i = 0; i < cols; i++) {
+                for (let j = 0; j < rows; j++) {
+                pullis.push(new Dot(i * spacing + spacing, j * spacing + spacing));
+                }
+            }
+            // Start DFS from the first dot.
+            visited.add(0);
+            dfsStack.push(0);
+            }
+
+            class Dot {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+            }
+            }
+
+
+
+
+
+    </script>
+</body>
+</html>

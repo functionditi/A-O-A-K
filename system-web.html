@@ -8,82 +8,11 @@
     </title>
     <!-- p5.js Library -->
     <script src="./libraries/p5/p5.js"></script>
-    <!-- p5.serialport Library -->
-    <script src="./libraries/p5.serialport.js"></script>
-    <!-- socket.io client from CDN -->
-    <!-- <script src="/socket.io/socket.io.js"></script> -->
-    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"
-    integrity="sha384-OyJz+..."
-    crossorigin="anonymous"></script>
-    <script>
-      const express = require('express')
-      const http = require('http')
-      const { Server } = require('socket.io')
+  
+    <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
 
-      const app = express()
-      const server = http.createServer(app)
-      const io = new Server(server, { cors: { origin: '*' } })
-
-      // serve your static files (html + p5 sketch)
-      app.use(express.static('public'))
-
-      // keep running sums and count
-      let sum = { pot0:0, pot1:0, pot2:0 }
-      let count = 0
-      let modeVotes = {}      // count votes per mode
-      let toggleSums = { q:0, e:0, t:0, life:0 }
-
-      io.on('connection', socket => {
-        // send current aggregate to newcomer
-        if (count > 0) {
-          const avg = {
-            pot0: sum.pot0/count,
-            pot1: sum.pot1/count,
-            pot2: sum.pot2/count,
-            mode: Object.entries(modeVotes).sort((a,b)=>b[1]-a[1])[0][0] || 1,
-            qMode: toggleSums.q>0,
-            eMode: toggleSums.e>0,
-            tMode: toggleSums.t>0,
-            lifeOn: toggleSums.life>0
-          }
-          socket.emit('stateUpdate', avg)
-        }
-
-        socket.on('inputUpdate', data => {
-          // update sums
-          sum.pot0 += data.pot0
-          sum.pot1 += data.pot1
-          sum.pot2 += data.pot2
-          count++
-
-          // tally mode votes
-          modeVotes[data.mode] = (modeVotes[data.mode]||0)+1
-
-          // tally toggles
-          if (data.qMode) toggleSums.q++
-          if (data.eMode) toggleSums.e++
-          if (data.tMode) toggleSums.t++
-          if (data.lifeOn) toggleSums.life++
-
-          // compute aggregate
-          const aggregate = {
-            pot0: sum.pot0/count,
-            pot1: sum.pot1/count,
-            pot2: sum.pot2/count,
-            mode: Number(Object.entries(modeVotes).sort((a,b)=>b[1]-a[1])[0][0]),
-            qMode: toggleSums.q > count/2,
-            eMode: toggleSums.e > count/2,
-            tMode: toggleSums.t > count/2,
-            lifeOn: toggleSums.life > count/2
-          }
-
-          io.emit('stateUpdate', aggregate)
-        })
-      })
-
-      server.listen(3000, ()=>console.log('listening on port 3000'))
-
-    </script>
+   
+  
     
 
     <!-- <style>
@@ -193,46 +122,7 @@
       let kolamInterval = 5000;
       let lastKolamTime = 0;
 
-      window.addEventListener('DOMContentLoaded', () => {
-        pot0Slider = document.getElementById('pot0');
-        pot1Slider = document.getElementById('pot1');
-        pot2Slider = document.getElementById('pot2');
-        modeSlider = document.getElementById('mode');
-        qModeCheckbox = document.getElementById('qMode');
-        eModeCheckbox = document.getElementById('eMode');
-        tModeCheckbox = document.getElementById('tMode');
-        lifeOnCheckbox = document.getElementById('lifeOn');
-
-        pot0Slider.addEventListener('input', () => {
-          pot0Value = Number(pot0Slider.value);
-          kolamInterval = map(pot0Value, 0, 1023, 2000, 300);
-        });
-        pot1Slider.addEventListener('input', () => {
-          pot1Value = Number(pot1Slider.value);
-        });
-        pot2Slider.addEventListener('input', () => {
-          pot2Value = Number(pot2Slider.value);
-        });
-
-        modeSlider.addEventListener('input', () => {
-          let m = Number(modeSlider.value);
-          if (m !== displayMode) {
-            displayMode = m;
-            resetModes();
-            if      (m===1) mode1_setup();
-            else if (m===2) mode2_setup();
-            else if (m===3) mode3_setup();
-            else if (m===4) mode4_setup();
-            else if (m===5) mode5_setup();
-          }
-        });
-
-        qModeCheckbox.addEventListener('change', () => qMode = qModeCheckbox.checked);
-        eModeCheckbox.addEventListener('change', () => eMode = eModeCheckbox.checked);
-        tModeCheckbox.addEventListener('change', () => tMode = tModeCheckbox.checked);
-        lifeOnCheckbox.addEventListener('change', () => lifeOn = lifeOnCheckbox.checked);
-      });
-
+      
       function preload() {
         myFont = loadFont("itf-trenches/PPMori-SemiBold.otf");
         mydispFont = loadFont("itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf");
@@ -805,38 +695,9 @@ draw() {
         }
       }
 
-      const socket = io('https://kolam-collab-server.onrender.com')
+    
 
-      // override your local variables whenever group state changes
-      socket.on('stateUpdate', data => {
-        pot0Value   = data.pot0
-        pot1Value   = data.pot1
-        pot2Value   = data.pot2
-        modeSlider.value = data.mode
-        displayMode = data.mode
-        qMode       = data.qMode
-        eMode       = data.eMode
-        tMode       = data.tMode
-        lifeOn      = data.lifeOn
-        // recalc layouts if needed
-        if(displayMode===1||displayMode===5) recalcRowsPositions()
-        else if(displayMode===3) mode3_setup()
-      })
-
-      function announceChange(){
-      socket.emit('inputUpdate',{
-        pot0: pot0Value,
-        pot1: pot1Value,
-        pot2: pot2Value,
-        mode: displayMode,
-        qMode, eMode, tMode, lifeOn
-      })
-    }
-
-    // call announceChange() from each slider/checkbox handler
-    pot0Slider.oninput = () => { /*…*/; announceChange() }
-    modeSlider.oninput = () => { /*…*/; announceChange() }
-    // etc
+   
 
 
 
@@ -901,8 +762,85 @@ draw() {
         else if (key.toLowerCase()==='r') lifeOn=!lifeOn;
       }
 
+     
 
      
+    </script>
+    <script>
+      window.addEventListener('DOMContentLoaded', () => {
+        
+        pot0Slider = document.getElementById('pot0');
+        pot1Slider = document.getElementById('pot1');
+        pot2Slider = document.getElementById('pot2');
+        modeSlider = document.getElementById('mode');
+        qModeCheckbox = document.getElementById('qMode');
+        eModeCheckbox = document.getElementById('eMode');
+        tModeCheckbox = document.getElementById('tMode');
+        lifeOnCheckbox = document.getElementById('lifeOn');
+
+        const socket = io('https://kolam-collab-server.onrender.com')
+
+        // override your local variables whenever group state changes
+        socket.on('stateUpdate', data => {
+          pot0Value   = data.pot0
+          pot1Value   = data.pot1
+          pot2Value   = data.pot2
+          modeSlider.value = data.mode
+          displayMode = data.mode
+          qMode       = data.qMode
+          eMode       = data.eMode
+          tMode       = data.tMode
+          lifeOn      = data.lifeOn
+          // recalc layouts if needed
+          if(displayMode===1||displayMode===5) recalcRowsPositions()
+          else if(displayMode===3) mode3_setup()
+        })
+
+        function announceChange(){
+        socket.emit('inputUpdate',{
+          pot0: pot0Value,
+          pot1: pot1Value,
+          pot2: pot2Value,
+          mode: displayMode,
+          qMode, eMode, tMode, lifeOn
+        })
+        }
+
+
+        pot0Slider.addEventListener('input', ()=> {
+          pot0Value = +pot0Slider.value
+          kolamInterval = map(pot0Value, 0, 1023, 2000, 300)
+          announceChange()
+        })
+        pot1Slider.addEventListener('input', ()=> {
+          pot1Value = +pot1Slider.value
+          announceChange()
+        })
+        pot2Slider.addEventListener('input', ()=> {
+          pot2Value = +pot2Slider.value
+          announceChange()
+        })
+        modeSlider.addEventListener('input', ()=> {
+          displayMode = +modeSlider.value
+          resetModes()
+          if(displayMode===1) mode1_setup()
+          else if(displayMode===2) mode2_setup()
+          else if(displayMode===3) mode3_setup()
+          else if(displayMode===4) mode4_setup()
+          else if(displayMode===5) mode5_setup()
+      
+          announceChange()
+        });
+        [qModeCheckbox, eModeCheckbox, tModeCheckbox, lifeOnCheckbox]
+          .forEach(cb=> cb.addEventListener('change', ()=>{
+            qMode   = qModeCheckbox.checked
+            eMode   = eModeCheckbox.checked
+            tMode   = tModeCheckbox.checked
+            lifeOn  = lifeOnCheckbox.checked
+            announceChange()
+          }));
+      });
+
     </script>
   </body>
 </html>

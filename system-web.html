@@ -762,85 +762,87 @@ draw() {
         else if (key.toLowerCase()==='r') lifeOn=!lifeOn;
       }
 
-     
 
-     
-    </script>
-    <script>
-      window.addEventListener('DOMContentLoaded', () => {
-        
-        pot0Slider = document.getElementById('pot0');
-        pot1Slider = document.getElementById('pot1');
-        pot2Slider = document.getElementById('pot2');
-        modeSlider = document.getElementById('mode');
-        qModeCheckbox = document.getElementById('qMode');
-        eModeCheckbox = document.getElementById('eMode');
-        tModeCheckbox = document.getElementById('tMode');
-        lifeOnCheckbox = document.getElementById('lifeOn');
+      document.addEventListener('DOMContentLoaded', () => {
+        console.log('🚀 DOM fully loaded');
 
-        const socket = io('https://kolam-collab-server.onrender.com')
+        // grab your controls
+        const pot0Slider       = document.getElementById('pot0');
+        const pot1Slider       = document.getElementById('pot1');
+        const pot2Slider       = document.getElementById('pot2');
+        const modeSlider       = document.getElementById('mode');
+        const qModeCheckbox    = document.getElementById('qMode');
+        const eModeCheckbox    = document.getElementById('eMode');
+        const tModeCheckbox    = document.getElementById('tMode');
+        const lifeOnCheckbox   = document.getElementById('lifeOn');
 
-        // override your local variables whenever group state changes
+        // connect socket.io
+        const socket = io('https://kolam-collab-server.onrender.com');
+        socket.on('connect', () => {
+          console.log('🔌 socket connected, id=', socket.id);
+        });
+
+        // incoming state updates
         socket.on('stateUpdate', data => {
-          pot0Value   = data.pot0
-          pot1Value   = data.pot1
-          pot2Value   = data.pot2
-          modeSlider.value = data.mode
-          displayMode = data.mode
-          qMode       = data.qMode
-          eMode       = data.eMode
-          tMode       = data.tMode
-          lifeOn      = data.lifeOn
-          // recalc layouts if needed
-          if(displayMode===1||displayMode===5) recalcRowsPositions()
-          else if(displayMode===3) mode3_setup()
-        })
+          console.log('⬇️ stateUpdate received:', data);
 
-        function announceChange(){
-        socket.emit('inputUpdate',{
-          pot0: pot0Value,
-          pot1: pot1Value,
-          pot2: pot2Value,
-          mode: displayMode,
-          qMode, eMode, tMode, lifeOn
-        })
+          // update your JS state
+          pot0Slider.value       = data.pot0;
+          pot1Slider.value       = data.pot1;
+          pot2Slider.value       = data.pot2;
+          modeSlider.value       = data.mode;
+          qModeCheckbox.checked  = data.qMode;
+          eModeCheckbox.checked  = data.eMode;
+          tModeCheckbox.checked  = data.tMode;
+          lifeOnCheckbox.checked = data.lifeOn;
+
+          // TODO: also assign those into your `pot0Value`, `displayMode`, etc.
+          // and call recalcRowsPositions() or mode3_setup() as needed.
+        });
+
+        // helper to send our opinion back
+        function announceChange() {
+          const payload = {
+            pot0:   +pot0Slider.value,
+            pot1:   +pot1Slider.value,
+            pot2:   +pot2Slider.value,
+            mode:   +modeSlider.value,
+            qMode:  qModeCheckbox.checked,
+            eMode:  eModeCheckbox.checked,
+            tMode:  tModeCheckbox.checked,
+            lifeOn: lifeOnCheckbox.checked
+          };
+          console.log('⬆️ emitting inputUpdate:', payload);
+          socket.emit('inputUpdate', payload);
         }
 
-
-        pot0Slider.addEventListener('input', ()=> {
-          pot0Value = +pot0Slider.value
-          kolamInterval = map(pot0Value, 0, 1023, 2000, 300)
-          announceChange()
-        })
-        pot1Slider.addEventListener('input', ()=> {
-          pot1Value = +pot1Slider.value
-          announceChange()
-        })
-        pot2Slider.addEventListener('input', ()=> {
-          pot2Value = +pot2Slider.value
-          announceChange()
-        })
-        modeSlider.addEventListener('input', ()=> {
-          displayMode = +modeSlider.value
-          resetModes()
-          if(displayMode===1) mode1_setup()
-          else if(displayMode===2) mode2_setup()
-          else if(displayMode===3) mode3_setup()
-          else if(displayMode===4) mode4_setup()
-          else if(displayMode===5) mode5_setup()
-      
-          announceChange()
+        // wire up every control — now with console.logs
+        pot0Slider.addEventListener('input', e => {
+          console.log('🎚 pot0Slider changed to', e.target.value);
+          announceChange();
         });
-        [qModeCheckbox, eModeCheckbox, tModeCheckbox, lifeOnCheckbox]
-          .forEach(cb=> cb.addEventListener('change', ()=>{
-            qMode   = qModeCheckbox.checked
-            eMode   = eModeCheckbox.checked
-            tMode   = tModeCheckbox.checked
-            lifeOn  = lifeOnCheckbox.checked
-            announceChange()
+        pot1Slider.addEventListener('input', e => {
+          console.log('🎚 pot1Slider changed to', e.target.value);
+          announceChange();
+        });
+        pot2Slider.addEventListener('input', e => {
+          console.log('🎚 pot2Slider changed to', e.target.value);
+          announceChange();
+        });
+        modeSlider.addEventListener('input', e => {
+          console.log('🔀 modeSlider changed to', e.target.value);
+          announceChange();
+        });
+        [ qModeCheckbox, eModeCheckbox, tModeCheckbox, lifeOnCheckbox ]
+          .forEach(cb => cb.addEventListener('change', e => {
+            console.log(`✅ ${e.target.id} is now`, e.target.checked);
+            announceChange();
           }));
       });
+     
 
+     
     </script>
+ 
   </body>
 </html>

@@ -3,6 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/addons/p5.sound.min.js"></script>
 
   <title>Symbols Scrollbar</title>
   
@@ -252,7 +254,7 @@
       <div style="height:200vh;">
         <div class="text-box">
           <p>
-                        Kolam Symbols: Drawing Down Desire through Ritual, Geometry, and Embodiment
+            Kolam Symbols: Drawing Down Desire through Ritual, Geometry, and Embodiment
             The symbols in a kolam—a traditional South Indian floor drawing—carry layers of meaning that extend far beyond their geometric forms. To understand why kolams look the way they do is to unravel a rich tapestry of cultural, spiritual, material, and embodied practices. At their core, kolams are not simply decorative patterns; they are visual manifestations of desires, intentions, and relational acts embedded into daily ritual. They are simultaneously inscriptions of personal and cosmic order.
 
             1. Drawing Down Desire: Kolam as Ritualized Intention
@@ -292,9 +294,11 @@
         </div>
       </div>
       <!-- Section C (200–300vh) -->
-      <div style="height:100vh; background:#d35400;"></div>
+      <div style="height:100vh; background:#d35400;">
+        
+      </div>
       <!-- Section D (300–400vh) -->
-      <div style="height:100vh; background:#a83279;"></div>   
+      <div id="sketch-container"  style="height:100vh; background:#a83279;"></div>   
     </div>
 
     <!-- scrollbar -->
@@ -396,6 +400,166 @@
       scrollContent.dispatchEvent(new Event('scroll'));
     });
     window.addEventListener('resize', updateThumb);
-  </script>
+  
+      let particles, m, n, a, b, v;
+      let particleSize = 8; // Global particle size
+      let minWalk = 0.002;
+      let mic, fft;
+      let volume;
+
+      // Settings: number of particles (canvas size is now full screen)
+      const settings = {
+        nParticles: 10000,
+        drawHeatmap: false,
+      };
+
+      const pi = 3.1415926535;
+
+      // Chladni 2D closed-form solution (returns a value between -1 and 1)
+      const chladni = (x, y, a, b, m, n) =>
+        a * sin(pi * n * x) * sin(pi * m * y) +
+        b * sin(pi * m * x) * sin(pi * n * y);
+
+      const DOMinit = () => {
+        // Create a full-screen canvas using windowWidth and windowHeight
+        let canvas = createCanvas(windowWidth, windowHeight);
+        canvas.parent("sketch-container");
+      };
+
+      const setupParticles = () => {
+        particles = [];
+        for (let i = 0; i < settings.nParticles; i++) {
+          particles.push(new Particle());
+        }
+      };
+
+      class Particle {
+        constructor() {
+          this.x = random(0, 1);
+          this.y = random(0, 1);
+          this.updateOffsets();
+        }
+
+        move() {
+          // Calculate the Chladni value for this particle
+          let eq = chladni(this.x, this.y, a, b, m, n);
+          // Determine movement amplitude
+          let amplitude = v * abs(eq);
+          if (amplitude < minWalk) amplitude = minWalk;
+          this.x += random(-amplitude, amplitude);
+          this.y += random(-amplitude, amplitude);
+          this.updateOffsets();
+        }
+
+        updateOffsets() {
+          // Constrain within the unit square and convert to screen space
+          this.x = constrain(this.x, 0, 1);
+          this.y = constrain(this.y, 0, 1);
+          this.xOff = width * this.x;
+          this.yOff = height * this.y;
+        }
+
+        show() {
+          noStroke();
+          fill("#f25c05");
+          ellipse(this.xOff, this.yOff, particleSize, particleSize);
+        }
+      }
+
+      const moveParticles = () => {
+        for (let particle of particles) {
+          particle.move();
+          particle.show();
+        }
+      };
+
+      const drawHeatmap = () => {
+        if (settings.drawHeatmap) {
+          let res = 3;
+          for (let i = 0; i <= width; i += res) {
+            for (let j = 0; j <= height; j += res) {
+              let eq = chladni(i / width, j / height, a, b, m, n);
+              strokeWeight(1);
+              stroke();
+              fill("#f25c05");
+              square(i, j, res);
+            }
+          }
+        }
+      };
+
+      const wipeScreen = () => {
+        background("#FFF");
+        stroke("#f25c05");
+      };
+
+      // p5.js setup
+      function setup() {
+        DOMinit();
+        setupParticles();
+
+        // Initialize microphone and FFT analysis
+        mic = new p5.AudioIn();
+        mic.start();
+        fft = new p5.FFT();
+        fft.setInput(mic);
+
+        // Set default vibration strength for particle movement
+        v = 0.03;
+      }
+
+      // p5.js draw loop
+      function draw() {
+        // Get overall volume and amplify it
+        volume = mic.getLevel() * 1000;
+        console.log(volume)
+        // Map overall volume to m (ensuring it's an integer between 1 and 16)
+        m = int(map(volume, 0, 5, 1, 16));
+
+        // Analyze the sound's frequency spectrum
+        let spectrum = fft.analyze();
+
+        // Extract frequency components:
+        let bass = fft.getEnergy("bass");         // Low-frequency energy
+        let treble = fft.getEnergy("treble");       // High-frequency energy
+        let spectralCentroid = fft.getCentroid();   // "Brightness" of the sound
+
+        // Map frequency-based values to the other Chladni parameters:
+        n = int(map(bass, 0, 255, 1, 2));         // n controlled by bass energy
+        a = map(treble, 0, 255, -2, 2);             // a controlled by treble energy
+        b = map(spectralCentroid, 0, 8000, -2, 2);   // b controlled by spectral centroid
+
+        wipeScreen();
+        drawHeatmap();
+        moveParticles();
+
+        // Update parameter display text
+        let paramsDiv = document.getElementById("parameters");
+        if (paramsDiv) {
+          paramsDiv.innerHTML = `
+            m: ${m} <br>
+            n: ${n} <br>
+            a: ${a.toFixed(2)} <br>
+            b: ${b.toFixed(2)}
+          `;
+        }
+      }
+
+      // Adjust canvas size when the window is resized
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+      }
+
+      // Optional: adjust particle count via key presses
+      function keyPressed() {
+        if (key === "+") {
+          particles.push(new Particle());
+        } else if (key === "-") {
+          if (particles.length > 1) {
+            particles.pop();
+          }
+        }
+      }
+    </script>
 </body>
 </html>

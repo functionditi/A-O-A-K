@@ -13,6 +13,10 @@
             font-family: 'Trench';
             src: url('itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf') format('opentype');
         }
+          @font-face {
+            font-family: 'PP Mori';
+            src: url('itf-trenches/PPMori-SemiBold.otf') format('opentype');
+        }
 
 
     
@@ -44,12 +48,14 @@
 
 
     position: relative;
-    min-height: 100vh;              
+         
     /* min-height: 100vh; */
-    background-color: #F25C05;
+    
+    background-color: #e6d063;
     display: flex;
-    align-items: center;
-    justify-content: center;
+    /* align-items: center;
+    justify-content: center; */
+    padding: 40px;
     
     z-index: 999;
   }
@@ -57,15 +63,115 @@
   #sectionC {
 
 
-position: relative;
-min-height: 100vh;
-background-color: #e6d063;
-display: flex;
-align-items: center;
-justify-content: center;
+    position: relative;
+    min-height: 90vh;
+    background-color: #F25C05;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-z-index: 999;
-}
+    z-index: 999;
+    }
+
+    #sectionD {
+
+
+    position: relative;
+         
+    /* min-height: 100vh; */
+    
+    background-color: #e6d063;
+    display: flex;
+    /* align-items: center;
+    justify-content: center; */
+    padding: 40px;
+    
+    z-index: 999;
+    }
+    #sectionE {
+
+
+    position: relative;
+         
+    /* min-height: 100vh; */
+    
+    background-color: #e6d063;
+    /* display: flex; */
+    /* align-items: center;
+    justify-content: center; */
+    /* padding: 40px; */
+    
+    z-index: 999;
+    }
+
+    #sectionF {
+
+
+    position: relative;
+         
+    /* min-height: 100vh; */
+    
+    background-color: #e6d063;
+    display: flex;
+    /* align-items: center;
+    justify-content: center; */
+    padding: 40px;
+    
+    z-index: 999;
+    }
+
+    #sectionG {
+
+
+    position: relative;
+        
+    /* min-height: 100vh; */
+  
+    background-color: #e6d063;
+    display: flex;
+    /* align-items: center;
+    justify-content: center; */
+    /* padding: 40px; */
+    
+    z-index: 999;
+    }
+
+    #sectionG img{
+      max-width: 50%;
+    }
+     #sectionH {
+
+
+    position: relative;
+         
+    min-height: 100vh;
+    
+    background-color: #e6d063;
+    /* display: flex; */
+    /* align-items: center;
+    justify-content: center; */
+    /* padding: 40px; */
+    overflow: hidden;
+    z-index: 999;
+    }
+
+    #sectionH img.draggable {
+    position: absolute; 
+    /* top: 100px;        
+    left: 100px;         */
+    width: 20%;  /* Adjust width to your liking */
+    height: auto;
+    border: 2px solid #e4c753;
+    cursor: grab; 
+    user-select: none;  /* prevent text selection when dragging */
+  }
+
+  #sectionH img.draggable:active {
+    cursor: grabbing;
+  }
+
+
+    
 
 iframe {
     margin: 0;
@@ -79,14 +185,6 @@ iframe {
 
 
 
-
-  #sectionB h2 {
-    color: #fff;
-    font-size: 4vw;
-    text-align: center;
-
-    
-  }
 
   /* typography stuff */
 
@@ -389,6 +487,62 @@ color: #fff;
       width: 120px;
     }
 
+    .slide-container{
+      position: relative;
+    }
+
+    .mySlides {
+      display: none;
+    }
+
+    .prev,
+    .next {
+      cursor: pointer;
+      position: absolute;
+      top: 40%;
+      width: auto;
+      padding: 16px;
+      margin-top: -50px;
+      color: white;
+      font-weight: bold;
+      font-size: 20px;
+      border-radius: 0 3px 3px 0;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* Position the "next button" to the right */
+    .next {
+      right: 0;
+      border-radius: 3px 0 0 3px;
+    }
+        /* Number text (1/3 etc) */
+    .numbertext {
+      color: #f2f2f2;
+      font-size: 12px;
+      padding: 8px 12px;
+      position: absolute;
+      top: 0;
+    }
+
+        /* Container for image text */
+    .caption-container {
+      text-align: center;
+      background-color: #222;
+      padding: 2px 16px;
+      color: white;
+    }
+
+    .row:after {
+      content: "";
+      display: table;
+      clear: both;
+    }
+
+
+
+
+
 
     /* thickness */
 ::-webkit-scrollbar {
@@ -427,6 +581,48 @@ color: #fff;
   
   scrollbar-color: #e6d063 #fff;
 } */
+
+
+  #text-box {
+            font-size: 20px;
+            color: #fff;
+            line-height: 1.3;
+            padding: 40px;
+            padding-right: 80px;
+            padding-top: 0%;
+          }
+
+         #sectionB h1, #sectionD h1, #sectionF h1{
+              font-family: 'PP Mori';
+              padding-left: 40px;
+              padding-right: 40px;
+              padding-top: 20px;
+              font-size: 6rem;
+              color: #e26126;
+          }
+
+          #sectionB h2, #sectionD h2, #sectionF h2{
+              font-family: 'PP Mori';
+               color: #e26126;
+              padding: 20px;
+              padding-left: 0px;
+          }
+
+         #sectionB h3, #sectionD h3, #sectionF h3{
+              font-family: 'PP Mori';
+              font-size: 1.5rem;
+               color: #e26126;
+              
+          }
+
+          #sectionB p, #sectionD p, #sectionF p{
+              font-family: 'PP Mori';
+              font-size: 1.2rem;
+              background-color: #e6d063;
+              color: #311d1d;
+          }
+
+
 
 
        
@@ -605,6 +801,33 @@ color: #fff;
 
 </section>
 <section id="sectionB">
+  <h2>
+      From Analog to Digital 
+  </h2>
+  
+  <div id="text-box">
+      <p>
+          In my own attempts to draw kolams physically, stooping over a tile floor with rice flour pinched between thumb and forefinger, I was quickly confronted with the gap between conceptual understanding and embodied knowledge. My hands struggled. The lines wavered, symmetry slipped, and the wet flour lay in uneven clumps. What felt like a simple gesture when watching others perform it- a graceful sweep of the hand, a confident curve- turned into a halting, awkward sequence when I tried to replicate it. Without years of practice and a lack of intuition, my fingers lacked finesse, and my body, untrained in the rhythms of kolam-making, resisted the flow.
+        </p>
+        
+        <p>
+          This difficulty reminded me that gesture in kolam is not merely a motor skill; it is memory, ritual, and spatial orientation, all carried in the body. Drawing a kolam well is less a matter of seeing and more a matter of moving. It’s a form of knowledge embedded in the shoulders, the spine, and the fingertip.
+
+        </p>
+
+        <h3 style="color: #d35400;">
+          ↓ In the interactive sketch below, the act of drawing a kolam is mediated through a camera and a machine learning model that tracks hand gestures. 
+          
+          </h3>
+          
+          <p>
+
+          The result is not a perfect replication of human motion but a distorted echo of it. The misalignment between where your hand moves and where the kolam appears reflects the difficulty of translating embodied, tacit gestures into computational logic. Something always shifts. The delay, the drift, the spatial mismatch all echo the broader challenge of encoding a living, sensory practice into the structured demands of code. Rather than correct this, I let the distortion remain visible, a trace of translation.
+          </p>
+
+  </div>
+</section>
+<section id="sectionC">
   
   <div id="javascript_sketch">
     <div class="sketch-container">
@@ -620,11 +843,79 @@ color: #fff;
   </div>
 </section>
 
-<section id="sectionC">
-  <h2 style="color: white; font-family: 'Trench'; font-size: 4vw; text-align: center;">
-      Welcome to Section C
+<section id="sectionD">
+ <h2>
+      From Hand to Machine 
   </h2>
+  
+  <div id="text-box">
+      <p>
+          Translating these gestures into a technological context opens up both possibilities and tensions. What would it mean, for instance, to use an Axidraw plotter to draw a kolam? The Axidraw offers precision in abundance, but it lacks the embodied temporality that defines a hand-drawn kolam. It does not slow down, pause momentarily, or vary slightly in response to breath or balance. At best, such a machine might serve as a scribe, replicating a design. Yet unless its motions emulate the constraints and improvisations of the human hand, perhaps by encoding hesitation or irregularity, it risks reducing kolam to a static output rather than preserving it as a living practice.
+
+        </p>
+        
+        <p>
+          Still, this disjunction is not necessarily a failure. It can become a site of inquiry. What gestures are lost, altered, or reinterpreted in the shift from hand to machine? What new meanings emerge when kolam is re-inscribed through algorithm and motor instead of muscle and memory?
+
+
+        </p>
+
+        <p>
+          Kolam and rangoli are often thought of as acts of hand and body: stooping, pinching, releasing, balancing symmetry with spontaneity. Yet the objects involved are not just passive tools. Rice flour, fingertips, the ground itself: each one mediates the artist’s intent through texture, resistance, and scale. In the same way, contemporary tools like code, servo motors, and pen plotters (such as the Axidraw) could extend this vocabulary. They could not simply be replacements for the hand but collaborators with different affordances.
+        </p>
+
+        <p>
+          With this line of thinking, when I use an Axidraw to draw a kolam, I’m not just automating a process. I’m shifting the site of action, from muscle memory to algorithmic instruction, from intuitive curve to coordinate path. Perhaps, the result still carries human intentionality, but refracted through a mechanical logic. There is precision, repetition, even elegance, but also a new kind of uncertainty. Wet rice batter might pool, the pen might slip, the machine might misalign—introducing its own form of improvisation. These glitches are not failures but outcomes of a different kind of embodiment: one where human gesture is translated through code, then enacted by machine.
+
+        </p>
+
+        <p>
+          This hybrid process makes visible the layers between thought, movement, and material. Generative design and physical computing do not strip away human presence; they redistribute it. A rangoli made with a plotter still begins with choice, constraint, and curiosity. The object might be different, but the action (interpreting pattern, working with imperfection, leaving a trace) remains.
+
+        </p>
+
+       
+
+  </div>
 </section>
+
+<section id="sectionE">
+  <img src="./assets/actions/kolam-doorstep.png">
+
+</section>
+
+<section id="sectionF">
+  <h2>Materiality</h2>
+  <div id="text-box">
+    <p>
+      From my perspective, as someone who lacks the years of practice than Indian woman have, making a kolam is a tactile negotiation with materials. 
+    </p>
+      
+      <p>When I use wet rice flour in place of ink in the Axidraw, the plotter must contend with thickness, moisture, and absorbency; qualities that are far less predictable than pen on paper. The batter may clot at the nozzle, spread unevenly, or stain the drawing surface in ways that curated code cannot anticipate. From an optimistic perspective, these outcomes are not errors but expressions of a different kind of material logic, one that reintroduces texture and variability into the mechanical process. In traditional kolam-making, rice flour interacts with dust, sunlight, insects, and feet; it is not only a medium but a participant. Translating that materiality into the Axidraw’s controlled framework reveals how much a kolam is shaped by its substrate: how much the ‘ink’ matters, even when the movement is machine-led.
+    </p>
+  </div>
+</section>
+
+<section id="sectionG">
+  <img src="./assets/actions/materiality-A.png">
+   <img src="./assets/actions/materiality-B.png">
+   <!-- <img src="./assets/actions/materiality-B.png"> -->
+
+</section>
+
+<section id="sectionH">
+  <img src="./assets/actions/doorstep-drag-1.png" style="width: 40%;"  class="draggable">
+  
+  <img src="./assets/actions/exhibition-drag-1.png"  style="width: 40%;" class="draggable">
+  <img src="./assets/actions/exhibition-drag-2.png"   class="draggable">
+  <img src="./assets/actions/doorstep-drag-2.png"   class="draggable">
+</section>
+
+
+
+
+
+
 
 </main>
 
@@ -642,12 +933,17 @@ color: #fff;
       draggableItems.forEach(item => {
         // Prevent default browser drag
         item.addEventListener('dragstart', e => e.preventDefault());
+        const isInSectionH = item.closest('#sectionH');
 
         let boundary=50;
+         let parent = isInSectionH ? document.querySelector('#sectionH') : window;
+        let maxX = (isInSectionH ? parent.clientWidth : window.innerWidth) - item.offsetWidth - (boundary * 2);
+        let maxY = (isInSectionH ? parent.clientHeight / 2 : window.innerHeight) - item.offsetHeight - (boundary * 2);
+
 
         // Random placement within the viewport
-        const maxX = window.innerWidth - item.offsetWidth - (boundary*2);
-        const maxY = window.innerHeight - item.offsetHeight - (boundary*2);
+        // const maxX = window.innerWidth - item.offsetWidth - (boundary*2);
+        // const maxY = window.innerHeight - item.offsetHeight - (boundary*2);
         item.style.left = (boundary+ Math.random() * maxX) + 'px';
         item.style.top  = (boundary+ Math.random() * maxY) + 'px';
 

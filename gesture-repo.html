@@ -599,9 +599,10 @@ color: #fff;
               padding-top: 20px;
               font-size: 6rem;
               color: #e26126;
+              border: none;
           }
 
-          #sectionB h2, #sectionD h2, #sectionF h2{
+          #sectionB h2, #sectionD h2, #sectionF h2, #sectionH h2{
               font-family: 'PP Mori';
                color: #e26126;
               padding: 20px;
@@ -615,17 +616,27 @@ color: #fff;
               
           }
 
-          #sectionB p, #sectionD p, #sectionF p{
+          #sectionB p, #sectionD p, #sectionF p, #sectionH p{
               font-family: 'PP Mori';
               font-size: 1.2rem;
               background-color: #e6d063;
               color: #311d1d;
           }
 
-
-
-
-       
+         #back-button {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 99999; /* make sure it's higher than all other fixed elements */
+  background: white;
+  color: #e26126;
+  border: none;
+  border-radius: 25px;
+  padding: 8px 20px;
+  font-size: 1rem;
+  cursor: pointer;
+  
+}
 
    
   </style>
@@ -633,12 +644,13 @@ color: #fff;
 
 <main>
 
+   <a href="./index.html" style="padding: 40px;"><button id="back-button" style="font-size: 1rem;">⇠BACK</button></a>
+
+
   <section id="sectionA">
 
-
-
 <div class="info-container">
-    <a href="./index.html"><button class="btn" style="font-size: 1rem;">⇠BACK</button></a>
+   
 <h2>ACTIONS / POSTURE / GESTURE</h2>
     <p>
         Sweeping wrists, crouched legs and bent spines. Bangles clinking, fingers dusted with powdered rice. 
@@ -904,6 +916,14 @@ color: #fff;
 </section>
 
 <section id="sectionH">
+  <h2 style="font-family: 'Trench'; padding: 40px; font-size: 4rem;">A collection of Axidrawn Kolams.</h2>
+  <div id="text-box" style="width: 50%;">
+    <p>
+      From household thresholds to gallery floors, each surface and context potentially invites a different reading of the work. The Axidraw operates with precision, yet the medium (imperfect, heavy, alive) introduces a counterforce. Wet rice flour pools unpredictably, lines drift, and forms emerge at the intersection of algorithm and material resistance. The result is not a mechanical imitation of hand-drawn kolams, but a reinterpretation shaped by friction, misalignment, and recontextualized ritual.
+
+
+    </p>
+  </div>
   <img src="./assets/actions/doorstep-drag-1.png" style="width: 40%;"  class="draggable">
   
   <img src="./assets/actions/exhibition-drag-1.png"  style="width: 40%;" class="draggable">

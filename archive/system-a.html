@@ -1,0 +1,885 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>
+      Kolams & Serial Data – Modes (1: Grid, 2: Radial, 3: Full-Screen, 4: Random, 5: Organic)
+      | q: Stroke-Only | w: Restore Fill | e: All Gradient | t: No Gradient | r: Toggle Life
+    </title>
+    <!-- p5.js Library -->
+    <script src="./libraries/p5/p5.js"></script>
+    <!-- p5.serialport Library -->
+    <script src="./libraries/p5.serialport.js"></script>
+    <!-- <style>
+      body { margin: 0; padding: 0; }
+      
+    </style> -->
+    <style>
+
+      body{
+        background-size: 1.5vw 1.5vw; /* Set the size of the grid */
+      background-image: radial-gradient(circle, #F25C05 0.08vw, transparent 0.08vw); /* Create dots */
+      background-repeat: repeat; /* Ensure the pattern repeats */
+      height: 100%;
+      width: 70%;
+      }
+      
+    </style>
+  </head>
+  <body>
+    <script>
+      // --------------------------------------------------
+      // GLOBAL SETTINGS & VARIABLES (Kolams)
+      // --------------------------------------------------
+      const palette = [
+        "#8F8EBF",
+        "#3264A6",
+        "#B8D9D5",
+        "#DCC329",
+        "#F24535"
+      ];
+      const thickness = 6;
+      const extraMargin = 6;
+      const birthConditions = [2, 3, 4];
+      const survivalConditions = [2, 3];
+      const bgcolor = "#FFF";
+
+      // Layout modes: 1 = Grid, 2 = Radial, 3 = Full-Screen Giant, 4 = Random, 5 = Organic.
+      let displayMode = 1;
+      let rows = [];
+      let totalKolams = 0;
+      const maxKolams = 60;
+      let mainKolam = null;
+      let additionalKolams = [];
+      let randomKolams = [];
+      let organicKolams = [];
+
+      // Appearance toggles:
+      let qMode = false;  // Stroke-Only toggle
+      let qStrokeColor;
+      let eMode = false;  // All-Gradient toggle
+      let tMode = false;  // No-Gradient toggle
+      let lifeOn = true;  // Game of Life updates
+
+      // --------------------------------------------------
+      // SERIAL SETUP VARIABLES (for two Arduinos)
+      // --------------------------------------------------
+      let serial1, serial2;
+      let latestData1 = "";
+      let latestData2 = "";
+
+      // We'll extract potentiometer values from Arduino1 (A2):
+      // pot0Value controls generation speed,
+      // pot1Value controls maximum tile count,
+      // pot2Value controls tile size range.
+      let pot0Value = 0;
+      let pot1Value = 0;
+      let pot2Value = 0;
+
+      // --------------------------------------------------
+      // AUTO-GENERATION TIMER (controlled by pot0 from Arduino1)
+      // --------------------------------------------------
+      // Map pot0 to an interval from 2000ms (slow) to 300ms (fast).
+      let kolamInterval = 5000;
+      let lastKolamTime = 0;
+
+      function preload() {
+        myFont = loadFont("itf-trenches/PPMori-SemiBold.otf");
+        mydispFont = loadFont("itf-trenches/Trench-Rounded-Complete/TrenchRounded-Light.otf");
+      }
+
+      // --------------------------------------------------
+      // HELPER FUNCTIONS (Kolams)
+      // --------------------------------------------------
+      function resetModes() {
+        rows = [];
+        totalKolams = 0;
+        mainKolam = null;
+        additionalKolams = [];
+        randomKolams = [];
+        organicKolams = [];
+      }
+
+      function logModeChange(modeDesc) {
+        console.log("Switched to Mode:", modeDesc);
+      }
+
+      // --------------------------------------------------
+      // KOLAM CLASS (For Modes 1-5)
+      // --------------------------------------------------
+      class Kolam {
+        constructor(tnumber, margin, scaleFactor = 1) {
+          this.tnumber = tnumber;
+          this.margin = margin;
+          this.scaleFactor = scaleFactor;
+          // Use pot2Value to control tile size range.
+          let minSize = map(pot2Value, 0, 1023, 15, 30);
+          let maxSize = map(pot2Value, 0, 1023, 40, 100);
+          this.tsize = int(random(minSize, maxSize));
+          this.tsize *= this.scaleFactor;
+          this.dimension = this.tsize * this.tnumber + 2 * (this.margin + extraMargin);
+          this.offsetX = (this.dimension - this.tsize * this.tnumber) / 2;
+          this.offsetY = this.offsetX;
+          let rotProb = [1,1,1,1,1,2,3,4,5,6,7,8,9];
+          this.rotationAngle = int(random(rotProb)) * PI / 8;
+          this.fillColor = random(palette);
+          this.strokeColor = random(palette.filter(c => c !== this.fillColor));
+          this.activeColor = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor));
+          this.gradientA = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor && c !== this.activeColor));
+          this.gradientB = random(palette.filter(c => c !== this.fillColor && c !== this.strokeColor && c !== this.activeColor && c !== this.gradientA));
+          this.updateRate = int(random(60, 240));
+          this.lastUpdateFrame = frameCount;
+          this.idx = 0;
+          this.creationTime = millis();
+          this.opacity = 255;
+          this.dispersing = false;
+          this.dispersalStartTime = null;
+          this.tileDispersalTimes = [];
+          this.x = 0;
+          this.y = 0;
+          this.pg = createGraphics(this.dimension, this.dimension);
+          // Organic mode flag.
+          this.organicMode = false;
+          this.noiseOffset = random(1000);
+          this.organicMask = null;
+          this.setupTiles();
+          this.configTiles();
+        }
+        
+        // In the Kolam class, update setupTiles() to assign a removal order:
+      setupTiles() {
+        this.link = [];
+        this.nlink = [];
+        // Create a new 2D array to hold removal order values for each corner tile.
+        this.removalOrder = [];
+        for (let i = 0; i < this.tnumber + 1; i++) {
+          let row = [];
+          let rowN = [];
+          let rowRemoval = [];
+          for (let j = 0; j < this.tnumber + 1; j++) {
+            let state = random() < 0.5 ? 1 : 0;
+            row.push(state);
+            rowN.push(state);
+            rowRemoval.push(random()); // random value between 0 and 1
+          }
+          this.link.push(row);
+          this.nlink.push(rowN);
+          this.removalOrder.push(rowRemoval);
+        }
+      }
+
+        
+        configTiles() {
+          for (let i = 0; i < this.link.length; i++) {
+            for (let j = 0; j < this.link[0].length; j++) {
+              this.link[i][j] = this.nlink[i][j];
+            }
+          }
+          let limit = random(0.4, 0.7);
+          for (let i = 0; i < this.nlink.length; i++) {
+            for (let j = 0; j < this.nlink.length / 2; j++) {
+              let l = random(1) > limit ? 1 : 0;
+              this.nlink[i][j] = l;
+              this.nlink[i][this.nlink.length - j - 1] = l;
+              this.nlink[j][i] = l;
+              this.nlink[this.nlink.length - j - 1][i] = l;
+              this.nlink[this.nlink.length - 1 - i][j] = l;
+              this.nlink[this.nlink.length - 1 - i][this.nlink.length - j - 1] = l;
+              this.nlink[j][this.nlink.length - 1 - i] = l;
+              this.nlink[this.nlink.length - 1 - j][this.nlink.length - 1 - i] = l;
+            }
+          }
+          for (let i = 0; i < this.nlink.length; i++) {
+            this.tileDispersalTimes[i] = [];
+            for (let j = 0; j < this.nlink[i].length; j++) {
+              this.tileDispersalTimes[i][j] = random(0, 3000);
+            }
+          }
+        }
+        
+        generateOrganicMask(threshold = 0.5, noiseScale = 2.0) {
+          this.organicMask = [];
+          for (let i = 0; i < this.tnumber; i++) {
+            this.organicMask[i] = [];
+            for (let j = 0; j < this.tnumber; j++) {
+              let n = noise((i / this.tnumber) * noiseScale + this.noiseOffset,
+                            (j / this.tnumber) * noiseScale + this.noiseOffset);
+              this.organicMask[i][j] = (n > threshold);
+            }
+          }
+        }
+        
+        updateLife() {
+          let newGrid = [];
+          for (let i = 0; i < this.tnumber + 1; i++) {
+            newGrid[i] = [];
+            for (let j = 0; j < this.tnumber + 1; j++) {
+              let liveNeighbors = 0;
+              for (let di = -1; di <= 1; di++) {
+                for (let dj = -1; dj <= 1; dj++) {
+                  if (di === 0 && dj === 0) continue;
+                  let ni = i + di;
+                  let nj = j + dj;
+                  if (ni >= 0 && ni < this.tnumber + 1 && nj >= 0 && nj < this.tnumber + 1) {
+                    liveNeighbors += this.link[ni][nj];
+                  }
+                }
+              }
+              newGrid[i][j] = (this.link[i][j] === 1)
+                ? (survivalConditions.includes(liveNeighbors) ? 1 : 0)
+                : (birthConditions.includes(liveNeighbors) ? 1 : 0);
+            }
+          }
+          return newGrid;
+        }
+        
+        triggerLifeUpdate() {
+          for (let i = 0; i < this.link.length; i++) {
+            for (let j = 0; j < this.link[0].length; j++) {
+              this.link[i][j] = this.nlink[i][j];
+            }
+          }
+          this.nlink = this.updateLife();
+          this.idx = 0;
+        }
+        // In the Kolam.draw() method, inside the loop that draws each tile:
+draw() {
+  this.pg.clear();
+  let age = millis() - this.creationTime;
+  // When the kolam is older than 20 seconds, mark it as dispersing.
+  if (age > 20000 && !this.dispersing) {
+    this.dispersing = true;
+    this.dispersalStartTime = millis();
+  }
+  // If in organic mode, update the mask.
+  if (this.organicMode) {
+    this.noiseOffset += 0.005;
+    this.generateOrganicMask(0.5, 2.0);
+  }
+  // Loop over tiles (only drawing for positions where (i+j)%2===0)
+  for (let i = 0; i < this.tnumber; i++) {
+    for (let j = 0; j < this.tnumber; j++) {
+      if ((i + j) % 2 === 0) {
+        // If dispersing, compute the removal fraction.
+        let fraction = 0;
+        if (this.dispersing) {
+          fraction = constrain((millis() - this.dispersalStartTime) / 3000, 0, 1);
+          // If this tile's removal order is less than the fraction, skip drawing it.
+          if (this.removalOrder[i][j] < fraction) {
+            continue;
+          }
+        }
+        // (tileX, tileY, rounding values, etc. computed as before)
+        let tileX = this.offsetX + i * this.tsize + this.margin;
+        let tileY = this.offsetY + j * this.tsize + this.margin;
+        let r_topLeft = (this.tsize / 2) * lerp(this.link[i][j], this.nlink[i][j], this.idx);
+        let r_topRight = (this.tsize / 2) * lerp(this.link[i+1][j], this.nlink[i+1][j], this.idx);
+        let r_bottomRight = (this.tsize / 2) * lerp(this.link[i+1][j+1], this.nlink[i+1][j+1], this.idx);
+        let r_bottomLeft = (this.tsize / 2) * lerp(this.link[i][j+1], this.nlink[i][j+1], this.idx);
+        let state = this.nlink[i][j];
+        let c1 = state === 1 ? this.activeColor : this.fillColor;
+        let c2 = state === 1 ? this.gradientA : this.gradientB;
+        // Drawing branches (using tMode, qMode, etc.) remain unchanged.
+        if (tMode) {
+          this.pg.fill(c1);
+          this.pg.noStroke();
+          this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+            r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+          this.pg.stroke(this.strokeColor);
+          this.pg.strokeWeight(thickness * 0.6);
+          this.pg.noFill();
+          this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+            r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+          this.pg.stroke("white");
+          this.pg.strokeWeight(thickness * 1.3);
+          this.pg.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+        } else if (qMode) {
+          // In qMode, we use a uniform color for both fill and stroke.
+          this.pg.fill(qStrokeColor);
+          this.pg.stroke(qStrokeColor);
+          this.pg.strokeWeight(thickness * 0.6);
+          this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+            r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+          this.pg.stroke(qStrokeColor);
+          this.pg.strokeWeight(thickness * 1.3);
+          this.pg.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+        } else {
+          if (eMode) {
+            drawGradientRect(this.pg, tileX, tileY, this.tsize, this.tsize, c1, c2);
+          } else {
+            if (r_topLeft === 0 && r_topRight === 0 && r_bottomRight === 0 && r_bottomLeft === 0) {
+              drawGradientRect(this.pg, tileX, tileY, this.tsize, this.tsize, c1, c2);
+            } else {
+              this.pg.fill(c1);
+              this.pg.noStroke();
+              this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+                r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+              this.pg.stroke(this.strokeColor);
+              this.pg.strokeWeight(thickness * 0.6);
+              this.pg.noFill();
+              this.pg.rect(tileX, tileY, this.tsize, this.tsize,
+                r_topLeft, r_topRight, r_bottomRight, r_bottomLeft);
+            }
+          }
+          this.pg.stroke("white");
+          this.pg.strokeWeight(thickness * 1.3);
+          this.pg.point(tileX + this.tsize / 2, tileY + this.tsize / 2);
+        }
+      }
+    }
+    this.idx += 0.02;
+    this.idx = constrain(this.idx, 0, 1);
+  }
+}
+
+      }
+
+      // Helper: Draw a vertical gradient rectangle.
+      function drawGradientRect(pg, x, y, w, h, c1, c2) {
+          pg.push();
+          pg.noFill();
+          for (let i = 0; i < h; i++) {
+            let inter = map(i, 0, h, 0, 1);
+            // If c1 is already a color (has levels property), use it; otherwise convert it.
+            let col1 = (c1 && c1.levels) ? c1 : color(c1);
+            let col2 = (c2 && c2.levels) ? c2 : color(c2);
+            let lerped = lerpColor(col1, col2, inter);
+            pg.stroke(lerped);
+            pg.line(x, y + i, x + w, y + i);
+          }
+          pg.pop();
+        }
+
+
+      // --------------------------------------------------
+      // MODE 1: Grid Layout Setup & Draw
+      // --------------------------------------------------
+      function recalcRowsPositions() {
+        let gapFactor = 0.5;
+        let rowHeights = [];
+        let rowWidths = [];
+        let effectiveHeights = [];
+        for (let r = 0; r < rows.length; r++) {
+          let row = rows[r];
+          let rowWidth = 0;
+          let rowHeight = 0;
+          for (let i = 0; i < row.length; i++) {
+            rowWidth += row[i].dimension;
+            rowHeight = max(rowHeight, row[i].dimension);
+          }
+          rowWidths[r] = rowWidth;
+          rowHeights[r] = rowHeight;
+          effectiveHeights[r] = r === 0 ? rowHeight : rowHeight * gapFactor;
+        }
+        let totalHeight = effectiveHeights.reduce((a, b) => a + b, 0);
+        let startY = (height - totalHeight) / 2;
+        for (let r = 0; r < rows.length; r++) {
+          let row = rows[r];
+          let startX = (width - rowWidths[r]) / 2;
+          let currentX = startX;
+          let yPos = startY + effectiveHeights[r] / 2;
+          for (let i = 0; i < row.length; i++) {
+            let k = row[i];
+            k.x = currentX + k.dimension / 2;
+            k.y = yPos;
+            currentX += k.dimension;
+          }
+          startY += effectiveHeights[r];
+        }
+      }
+
+      function addKolam(newKolam) {
+        if (totalKolams >= maxKolams) return;
+        newKolam.tilt = (totalKolams % 2 === 1);
+        if (rows.length === 0) {
+          rows.push([newKolam]);
+        } else {
+          let lastRow = rows[rows.length - 1];
+          let rowWidth = lastRow.reduce((sum, k) => sum + k.dimension, 0);
+          if (rowWidth + newKolam.dimension > width) {
+            rows.push([newKolam]);
+          } else {
+            lastRow.push(newKolam);
+          }
+        }
+        totalKolams++;
+        recalcRowsPositions();
+      }
+
+      // --------------------------------------------------
+      // MODE 1: Grid Layout
+      // --------------------------------------------------
+      function mode1_setup() {
+        console.log("Setting up Mode 1: Grid Layout");
+        resetModes();
+        let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+        let tnumber = int(random(2, maxTiles));
+        let margin = 5;
+        let k = new Kolam(tnumber, margin, 1);
+        addKolam(k);
+      }
+
+      function mode1_draw() {
+        imageMode(CENTER);
+        for (let r = rows.length - 1; r >= 0; r--) {
+          let row = rows[r];
+          for (let i = row.length - 1; i >= 0; i--) {
+            let k = row[i];
+            k.draw();
+            push();
+            translate(k.x, k.y);
+            rotate(k.rotationAngle);
+            image(k.pg, 0, 0);
+            pop();
+            if (lifeOn && frameCount - k.lastUpdateFrame >= k.updateRate) {
+              k.triggerLifeUpdate();
+              k.lastUpdateFrame = frameCount;
+            }
+            if (k.dispersing && millis() - k.dispersalStartTime > 3000) {
+              row.splice(i, 1);
+              totalKolams--;
+            }
+          }
+          if (row.length === 0) rows.splice(r, 1);
+        }
+      }
+
+      // --------------------------------------------------
+      // MODE 2: Radial / Regeneration
+      // --------------------------------------------------
+      function mode2_setup() {
+        console.log("Setting up Mode 2: Radial");
+        mainKolam = null;
+        additionalKolams = [];
+      }
+
+      function mode2_draw() {
+        imageMode(CENTER);
+        if (mainKolam) {
+          mainKolam.x = width / 2;
+          mainKolam.y = height / 2;
+          mainKolam.draw();
+          push();
+          translate(mainKolam.x, mainKolam.y);
+          rotate(mainKolam.rotationAngle);
+          image(mainKolam.pg, 0, 0);
+          pop();
+          if (lifeOn && frameCount - mainKolam.lastUpdateFrame >= mainKolam.updateRate) {
+            mainKolam.triggerLifeUpdate();
+            mainKolam.lastUpdateFrame = frameCount;
+          }
+          if (mainKolam.dispersing && millis() - mainKolam.dispersalStartTime > 3000) {
+            mainKolam = null;
+            additionalKolams = [];
+          }
+        }
+        for (let i = additionalKolams.length - 1; i >= 0; i--) {
+          let k = additionalKolams[i];
+          if (k.polar) {
+            k.x = width / 2 + k.polar.radius * cos(k.polar.angle);
+            k.y = height / 2 + k.polar.radius * sin(k.polar.angle);
+          }
+          k.draw();
+          push();
+          translate(k.x, k.y);
+          rotate(k.rotationAngle);
+          image(k.pg, 0, 0);
+          pop();
+          if (lifeOn && frameCount - k.lastUpdateFrame >= k.updateRate) {
+            k.triggerLifeUpdate();
+            k.lastUpdateFrame = frameCount;
+          }
+          if (k.dispersing && millis() - k.dispersalStartTime > 3000) {
+            additionalKolams.splice(i, 1);
+          }
+        }
+      }
+
+      // --------------------------------------------------
+      // MODE 3: Full-Screen Giant Kolam
+      // (Auto-generation disabled)
+      // --------------------------------------------------
+      function mode3_setup() {
+        console.log("Setting up Mode 3: Full-Screen Giant Kolam");
+        let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+        let tnumber = int(random(2, maxTiles));
+        let margin = 5;
+        let tempKolam = new Kolam(tnumber, margin, 1);
+        let desiredSize = min(width, height) * 0.9;
+        let newScale = desiredSize / tempKolam.dimension;
+        mainKolam = new Kolam(tnumber, margin, newScale);
+      }
+
+      function mode3_draw() {
+        imageMode(CENTER);
+        if (mainKolam) {
+          mainKolam.x = width / 2;
+          mainKolam.y = height / 2;
+          mainKolam.draw();
+          push();
+          translate(mainKolam.x, mainKolam.y);
+          rotate(mainKolam.rotationAngle);
+          image(mainKolam.pg, 0, 0);
+          pop();
+          if (lifeOn && frameCount - mainKolam.lastUpdateFrame >= mainKolam.updateRate) {
+            mainKolam.triggerLifeUpdate();
+            mainKolam.lastUpdateFrame = frameCount;
+          }
+        }
+      }
+
+      // --------------------------------------------------
+      // MODE 4: Random Mode
+      // --------------------------------------------------
+      function mode4_setup() {
+        console.log("Setting up Mode 4: Random Mode");
+        randomKolams = [];
+      }
+
+      function mode4_draw() {
+        imageMode(CENTER);
+        for (let i = randomKolams.length - 1; i >= 0; i--) {
+          let k = randomKolams[i];
+          k.draw();
+          push();
+          translate(k.x, k.y);
+          rotate(k.rotationAngle);
+          image(k.pg, 0, 0);
+          pop();
+          if (lifeOn && frameCount - k.lastUpdateFrame >= k.updateRate) {
+            k.triggerLifeUpdate();
+            k.lastUpdateFrame = frameCount;
+          }
+          if (k.dispersing && millis() - k.dispersalStartTime > 3000) {
+            randomKolams.splice(i, 1);
+          }
+        }
+      }
+
+      // --------------------------------------------------
+      // MODE 5: Organic Mode
+      // --------------------------------------------------
+      function mode5_setup() {
+        console.log("Setting up Mode 5: Organic Mode");
+        organicKolams = [];
+      }
+
+      function mode5_draw() {
+        imageMode(CENTER);
+        for (let i = organicKolams.length - 1; i >= 0; i--) {
+          let k = organicKolams[i];
+          k.draw();
+          push();
+          translate(k.x, k.y);
+          image(k.pg, 0, 0);
+          pop();
+          if (lifeOn && frameCount - k.lastUpdateFrame >= k.updateRate) {
+            k.triggerLifeUpdate();
+            k.lastUpdateFrame = frameCount;
+          }
+          if (k.dispersing && millis() - k.dispersalStartTime > 3000) {
+            organicKolams.splice(i, 1);
+          }
+        }
+      }
+
+      // --------------------------------------------------
+      // AUTO-GENERATE NEW KOLOMS EVERY 5 SECONDS
+      // (Controlled by pot0 for speed, pot1 for tile count, pot2 for tile size range)
+      // (Not used in Mode 3)
+      // --------------------------------------------------
+      function autoGenerateKolams() {
+        if (displayMode === 3) return;  // Skip auto-generation in Mode 3.
+        if (millis() - lastKolamTime > kolamInterval) {
+          if (displayMode === 1) {
+            if (totalKolams < maxKolams) {
+              let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+              let tnumber = int(random(2, maxTiles));
+              let margin = 5;
+              let newKolam = new Kolam(tnumber, margin, 1);
+              addKolam(newKolam);
+              console.log("Auto-added new kolam in Mode 1 with tnumber =", tnumber);
+            }
+          } else if (displayMode === 2) {
+            if (!mainKolam) {
+              let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+              let tnumber = int(random(2, maxTiles));
+              mainKolam = new Kolam(tnumber, 5, 1);
+              additionalKolams = [];
+              console.log("Auto-initialized main kolam for Mode 2 with tnumber =", tnumber);
+            } else {
+              let currentRing = additionalKolams.length + 1;
+              let ringCount = 4 * currentRing;
+              if (additionalKolams.length + ringCount <= 60) {
+                let newScale = mainKolam.scaleFactor * pow(0.90, currentRing);
+                let count = 4 * currentRing;
+                let ringGap = mainKolam.dimension * 0.2;
+                let ringRadius = mainKolam.dimension / 2 + ringGap * currentRing;
+                for (let i = 0; i < count; i++) {
+                  let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+                  let tnumber = int(random(2, maxTiles));
+                  let newKolam = new Kolam(tnumber, 5, newScale);
+                  newKolam.polar = { radius: ringRadius, angle: i * (TWO_PI / count) };
+                  additionalKolams.push(newKolam);
+                }
+                console.log("Auto-added ring of kolams in Mode 2");
+              } else {
+                console.log("Mode 2: Additional kolams limit reached");
+              }
+            }
+          } else if (displayMode === 4) {
+            let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+            let tnumber = int(random(2, maxTiles));
+            let margin = 5;
+            let newKolam = new Kolam(tnumber, margin, 1);
+            newKolam.x = random(width);
+            newKolam.y = random(height);
+            randomKolams.push(newKolam);
+            console.log("Auto-added new random kolam in Mode 4 with tnumber =", tnumber);
+          } else if (displayMode === 5) {
+            if (totalKolams < maxKolams) {
+              let maxTiles = int(map(pot1Value, 0, 1023, 2, 20));
+              let tnumber = int(random(2, maxTiles));
+              let margin = 5;
+              let newKolam = new Kolam(tnumber, margin, 1);
+              newKolam.organicMode = true;
+              newKolam.generateOrganicMask(0.5, 2.0);
+              newKolam.rotationAngle = 0;
+              newKolam.x = random(width);
+              newKolam.y = random(height);
+              organicKolams.push(newKolam);
+              console.log("Auto-added new organic kolam in Mode 5 with tnumber =", tnumber);
+            }
+          }
+          lastKolamTime = millis();
+        }
+      }
+
+      // --------------------------------------------------
+      // SERIAL CONNECTIONS FOR TWO ARDUINOS
+      // --------------------------------------------------
+      function setupSerial() {
+        serial1 = new p5.SerialPort();
+        serial2 = new p5.SerialPort();
+        
+        serial1.list();
+        serial2.list();
+        
+        // Open the specified ports (adjust names if needed)
+        serial1.open("/dev/tty.usbmodem11301");
+        serial2.open("/dev/tty.usbserial-1120");
+        
+        serial1.on('connected', () => console.log("Connected to /dev/tty.usbmodem11301"));
+        serial1.on('list', (list) => {
+          console.log("Serial1 Port List:");
+          list.forEach((port, i) => console.log(i + ": " + port));
+        });
+        serial1.on('data', gotData1);
+        serial1.on('error', (err) => console.log("Error on Serial1: " + err));
+        serial1.on('open', () => console.log("Serial1 Port Open"));
+        
+        serial2.on('connected', () => console.log("Connected to /dev/tty.usbserial-1120"));
+        serial2.on('list', (list) => {
+          console.log("Serial2 Port List:");
+          list.forEach((port, i) => console.log(i + ": " + port));
+        });
+        serial2.on('data', gotData2);
+        serial2.on('error', (err) => console.log("Error on Serial2: " + err));
+        serial2.on('open', () => console.log("Serial2 Port Open"));
+      }
+
+      function gotData1() {
+        let currentString1 = serial1.readLine().trim();
+        // Process only if the line starts with "A2"
+        if (currentString1.length > 0 && currentString1.startsWith("A2")) {
+          latestData1 = currentString1;
+          console.log("Serial1 Data: " + currentString1);
+          let parts = currentString1.split(",");
+          if (parts.length >= 4) {
+            // pot0 controls generation speed, pot1 controls tile count max, pot2 controls tile size range.
+            pot0Value = Number(parts[1]);
+            pot1Value = Number(parts[2]);
+            pot2Value = Number(parts[3]);
+            // Map pot0 (0-1023) to interval range: 2000 ms (slow) to 300 ms (fast).
+            kolamInterval = map(pot0Value, 0, 1023, 2000, 300);
+            console.log("Updated kolamInterval: " + kolamInterval + " ms");
+            console.log("pot1Value (tile count control): " + pot1Value);
+            console.log("pot2Value (tile size control): " + pot2Value);
+          }
+        }
+      }
+
+      function gotData2() {
+        let currentString2 = serial2.readLine().trim();
+        // Process only if the line starts with "A1"
+        if (currentString2.length > 0 && currentString2.startsWith("A1")) {
+          let parts = currentString2.split(",");
+          // parts[0] is "A1"; parts[1]..parts[5] are toggle values for modes 1-5.
+          let newMode = null;
+          for (let i = 1; i <= 5; i++) {
+            if (parts[i] === "1") {
+              newMode = i; // Use the last toggle with value "1"
+            }
+          }
+          if (newMode !== null && newMode !== displayMode) {
+            displayMode = newMode;
+            console.log("Display mode set to", displayMode, "via Arduino2 toggle update");
+            resetModes();
+            if (displayMode === 1) mode1_setup();
+            else if (displayMode === 2) mode2_setup();
+            else if (displayMode === 3) mode3_setup();
+            else if (displayMode === 4) mode4_setup();
+            else if (displayMode === 5) mode5_setup();
+          }
+          // Now, check for toggles 6, 7, 8 to control appearance.
+          if (parts.length >= 9) {
+            qMode = (parts[6] === "1");
+            eMode = (parts[7] === "1");
+            tMode = (parts[8] === "1");
+            console.log("Arduino2 toggles: qMode=", qMode, "eMode=", eMode, "tMode=", tMode);
+          }
+
+          
+          latestData2 = currentString2;
+          console.log("Serial2 Data: " + currentString2);
+        }
+      }
+
+      // --------------------------------------------------
+      // p5.js setup() & draw() (Kolams & Serial)
+      // --------------------------------------------------
+      function setup() {
+        createCanvas(windowWidth, windowHeight);
+        imageMode(CENTER);
+        console.log("Setup: Canvas created with dimensions", windowWidth, windowHeight);
+        // Initialize the selected mode (default Mode 1)
+        switch(displayMode) {
+          case 1: mode1_setup(); break;
+          case 2: mode2_setup(); break;
+          case 3: mode3_setup(); break;
+          case 4: mode4_setup(); break;
+          case 5: mode5_setup(); break;
+        }
+
+        qStrokeColor = palette[Math.floor(random(palette.length))];
+        setupSerial();
+        
+      }
+
+      function draw() {
+        //background(bgcolor);
+        clear();
+        autoGenerateKolams();
+        switch(displayMode) {
+          case 1: mode1_draw(); break;
+          case 2: mode2_draw(); break;
+          case 3: mode3_draw(); break;
+          case 4: mode4_draw(); break;
+          case 5: mode5_draw(); break;
+        }
+
+        push();
+        textFont(myFont);
+        // Overlay text for Arduino outputs and toggle statuses.
+        fill(0);
+        textSize(14);
+        text("Arduino (/dev/tty.usbmodem11301): " + latestData1, 10, 20);
+        text("Arduino (/dev/tty.usbserial-1120): " + latestData2, 10, 40);
+        // Overlay for current mode, toggle states, and pot values.
+        text("Current Display Mode: " + displayMode, 10, height - 180);
+        text("Stroke-Only (q): " + (qMode ? "ON" : "OFF"), 10, height - 160);
+        text("All-Gradient (e): " + (eMode ? "ON" : "OFF"), 10, height - 140);
+        text("No-Gradient (t): " + (tMode ? "ON" : "OFF"), 10, height - 120);
+        text("Game of Life (r): " + (lifeOn ? "ON" : "OFF"), 10, height - 200);
+        text("Pot0 (speed): " + pot0Value, width - 150, height - 180);
+        text("Pot1 (tile count): " + pot1Value, width - 150, height - 160);
+        text("Pot2 (tile size): " + pot2Value, width - 150, height - 140);
+        pop();
+
+        push();
+        textFont(mydispFont);
+        textSize(180);
+        fill("#F25C05")
+        //text("Sacred Mosaic", 10, 180);
+
+        pop();
+      }
+
+      // --------------------------------------------------
+      // KEY PRESSED HANDLING (with Console Logging)
+      // --------------------------------------------------
+      function keyPressed() {
+        // Mode switching (1-5) via keyboard.
+        if (key === '1') {
+          displayMode = 1;
+          resetModes();
+          mode1_setup();
+          logModeChange("Grid Layout (Mode 1)");
+        }
+        if (key === '2') {
+          displayMode = 2;
+          resetModes();
+          mode2_setup();
+          logModeChange("Radial (Mode 2)");
+        }
+        if (key === '3') {
+          displayMode = 3;
+          resetModes();
+          mode3_setup();
+          logModeChange("Full-Screen Giant Kolam (Mode 3)");
+        }
+        if (key === '4') {
+          displayMode = 4;
+          resetModes();
+          mode4_setup();
+          logModeChange("Random (Mode 4)");
+        }
+        if (key === '5') {
+          displayMode = 5;
+          resetModes();
+          mode5_setup();
+          logModeChange("Organic (Mode 5)");
+        }
+        // Appearance toggles via keyboard:
+        if (key === 'q' || key === 'Q') {
+          qMode = true;
+          console.log("Stroke-Only mode toggled to", qMode);
+          
+        }
+        if (key === 'w' || key === 'W') {
+          qMode = false;
+          console.log("Stroke-Only mode turned OFF (Fill restored)");
+        }
+        if (key === 'e' || key === 'E') {
+          eMode = !eMode;
+          console.log("All-Gradient mode toggled to", eMode);
+        }
+        if (key === 't' || key === 'T') {
+          tMode = !tMode;
+          console.log("No-Gradient mode toggled to", tMode);
+        }
+        if (key === 'r' || key === 'R') {
+          lifeOn = !lifeOn;
+          console.log("Game of Life toggled to", lifeOn);
+          if (!lifeOn) {
+            rows.forEach(row => row.forEach(k => k.lastUpdateFrame = frameCount));
+            if (mainKolam) mainKolam.lastUpdateFrame = frameCount;
+            additionalKolams.forEach(k => k.lastUpdateFrame = frameCount);
+            randomKolams.forEach(k => k.lastUpdateFrame = frameCount);
+            organicKolams.forEach(k => k.lastUpdateFrame = frameCount);
+          }
+        }
+      }
+
+      function windowResized() {
+        resizeCanvas(windowWidth, windowHeight);
+        console.log("Window resized: new dimensions", windowWidth, windowHeight);
+        if (displayMode === 1 || displayMode === 5) {
+          recalcRowsPositions();
+        } else if (displayMode === 3) {
+          mode3_setup();
+        }
+      }
+    </script>
+  </body>
+</html>

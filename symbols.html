@@ -248,6 +248,20 @@
             animation: fall-in 0.5s ease forwards;
         }
 
+        #fixed-img, #fixed-caption, #fixed-source {
+          transition: opacity 0.5s ease;
+        }
+
+        #fixed-img {
+        display: block;
+        width: 100%;
+        height: auto;
+        object-fit: cover;
+        /* border-radius: 12px; */
+      }
+
+
+
   </style>
 
 </head>
@@ -261,7 +275,7 @@
       </div>
       <!-- Section A (0–100vh) -->
       <div style="height:fit-content;" id="sectionA">
-         <h1> Between Shape and Meaning</h1>
+         <h1 style="font-family: 'Trench'; width: 90%;"> Between Shape and Meaning</h1>
 
         <div class="text-box">
               <p>
@@ -316,9 +330,11 @@
         <br>
       </div>
       <!-- Section B (100–200vh) -->
-      <div id="sectionB" style="padding-top: 10%;">
-          <h1>Patterns of Resonance</h1>
+      <div id="sectionB" style="padding-top: 0%;">
+      
+          
         <div class="text-box">
+          <h2 style="font-size: 4rem; font-family: 'Trench';">Patterns of Resonance</h2>
 
           <p>
             To look at a kolam is to enter a conversation; to draw one is to join it. Each kolam opens a dialogue, not only between artist and viewer, but between the body, the land, the ancestors, and the divine. Its symbols are not inert signs but performative traces: of care given, of desires spoken, of memory made visible. To look is to witness a proposition: that order can emerge from repetition, that beauty can exist in impermanence, that meaning can reside in gesture. To draw is to affirm these propositions with one’s own body. It is to learn through the hand what cannot be fully stated in words; to enact a prayer without speaking; to inscribe oneself into a lineage of women who have done the same, in silence, for generations.
@@ -343,13 +359,26 @@
           </p>
            <br>
 
-           <h2>Experiment 1.1</h2>
-           <h3>Drawing Down Desires</h3>
+           <section style="background-color: #e6d063;">
+
+           <h2 style="color: #d35400;">Experiment 1.1</h2>
+           <h3 style="color: #Fff; font-size: 4rem;">Drawing Down Desires</h3>
            <br>
            
-           <p>
-            This theoretic interactive explores the visual and sonic resonances between kolam—a traditional South Indian floor-drawing practice—and cymatics, the study of how sound vibrations shape matter into patterns. The device pictured is a custom-built sonic interface that captures spoken desires and translates it into generative Chladni-inspired visuals, simulating the ways kolams and sound both give form to rhythm.
+           <p style="color: #e26126;">
+            ↓ This theoretic interactive explores the visual and sonic resonances between kolam—a traditional South Indian floor-drawing practice—and cymatics, the study of how sound vibrations shape matter into patterns. The device pictured is a custom-built sonic interface that captures spoken desires and translates it into generative Chladni-inspired visuals, simulating the ways kolams and sound both give form to rhythm.
            </p>
+
+           <p style="color: #fff;">
+            Speak or make sound into your microphone. Use different tones or pitches. Watch the particles respond in real time.
+           </p>
+
+
+          
+        
+          
+
+           </section>
         
         </div>
       </div>
@@ -374,13 +403,32 @@
 
     <!-- fixed right -->
     <div class="fixed-right">
-      <div class="statement-box" id="fixed-text">
-        <p>Lorem ipsum dolor sit amet, consectetuer adipiscing elit...</p>
+       <div class="statement-box" id="fixed-text">
+        <!-- <img id="fixed-img" src="./assets/symbols/symbols-1.webp" />
+        <p id="fixed-caption">A woman draws an intricate kolam during the Chennai 2020 Kolam Contest.</p> -->
+
+        <figure style="text-align:left">
+          <img id="fixed-img" src="./assets/symbols/symbols-1.webp" style="max-width:100%; border-radius:0px"/>
+          <figcaption id="fixed-caption" style="margin-top:10px; font-family:'PP Mori'; font-size:16px; color:#e26126;">
+            A woman draws an intricate kolam during the Chennai 2020 Kolam Contest.
+          </figcaption>
+          <div id="fixed-source" style="margin-top:8px; font-size:13px;">
+            <a href="https://www.hinduismtoday.com/magazine/jan-feb-mar-2021/culture-chennais-2020-kolam-contest/"
+              target="_blank" rel="noopener noreferrer"
+              style="font-family:'PP Mori'; color:#d35400; text-decoration:underline;">
+              Source
+            </a>
+          </div>
+        </figure>
       </div>
+
     </div>
   </div>
 
   <script>
+
+
+    
     const container     = document.querySelector('.container');
     const scrollContent = document.getElementById('scrollable-content');
     const fixedPanel    = document.getElementById('fixed-text');
@@ -408,7 +456,7 @@
 
       // swap at 1×vh
       if (!changed && y > secAheight) {
-        doSwap('<p>hello text text i have changed</p>', dir);
+        // doSwap('<p>hello text text i have changed</p>', dir);
         changed = true;
       } else if (changed && y <= secAheight) {
         doSwap(originalHTML, dir);
@@ -642,6 +690,89 @@
           }
         }
       }
+
+
+      const headings = Array.from(secA.querySelectorAll("h2"));
+
+const headingData = [
+  {
+    keyword: "Cultural and Spiritual Foundations",
+    img: "./assets/symbols/symbols-1.webp",
+    caption: "A woman draws an intricate kolam during the Chennai 2020 Kolam Contest.",
+    source: "https://www.hinduismtoday.com/magazine/jan-feb-mar-2021/culture-chennais-2020-kolam-contest/"
+  },
+  {
+    keyword: "Embodiment and Maternal Lineage",
+    img: "./assets/symbols/symbols-2.jpg",
+    caption: "Two women collaboratively draw a kolam in front of their home — a traditional daily practice blending mathematical precision with cultural devotion.",
+    source: "https://americankahani.com/lifestyle/kolams-the-geometrical-and-mathematical-beauty-of-traditional-indian-art/"
+  },
+  {
+    keyword: "Geometric and Natural Patterns",
+    img: "./assets/symbols/symbols-3.png",
+    caption: "Visual explanation of orthogonal vs. diagonal geometric spaces in kolam art, showing how orientation and position influence motif structure and sequencing.",
+    source: "https://www.researchgate.net/figure/Explanation-of-the-geometric-spaces-in-kolam-art-Taken-and-adapted-with-permission_fig2_355709877"
+  },
+  {
+    keyword: "Materiality and Medium",
+    img: "./assets/symbols/symbols-4.jpg",
+    caption: "A woman prepares rice flour paste to draw a kolam at her doorstep.",
+    source: "https://www.natureinfocus.in/vana-katha/kolam-the-art-of-everyday-sustainability"
+  },
+  {
+    keyword: "Temporality and Ephemerality",
+    img: "./assets/symbols/symbols-5.png",
+    caption: "A generative reinterpretation of kolam using binary logic and visual recursion — bridging algorithmic aesthetics with traditional forms.",
+    source: "https://aarati.online/rituals-of-recursion"
+  },
+  {
+    keyword: "Translation and Technology",
+    img: "./assets/symbols/symbols-6.jpg",
+    caption: "An interactive interface from Rituals of Recursion translates binary patterns into kolam-like visuals, allowing users to explore cultural algorithms through code and gesture.",
+    source: "https://aarati.online/rituals-of-recursion"
+  },
+  {
+    keyword: "Patterns of Resonance",
+    img: "./assets/symbols/symbols-7.webp",
+    caption: "Cymatic patterns formed by vibrating surfaces at specific sound frequencies, illustrating how sound can organize matter into geometric structures — resonances that echo visual motifs found in kolam.",
+    source: "https://www.mdpi.com/1422-0067/25/13/6841"
+  },
+];
+
+function updateFixedImageAndCaption() {
+  const scrollY = scrollContent.scrollTop;
+  const viewportHeight = window.innerHeight;
+
+  let current = null;
+
+  headings.forEach((h, i) => {
+    const rect = h.getBoundingClientRect();
+    const top = rect.top;
+
+    if (top >= 0 && top < viewportHeight * 0.4) {
+      current = headingData[i];
+    }
+  });
+
+  if (current) {
+    const img = document.getElementById("fixed-img");
+    const caption = document.getElementById("fixed-caption");
+    const source = document.getElementById("fixed-source").querySelector("a");
+
+    // always update; avoid stale DOM even if URL strings look similar
+    img.setAttribute("src", current.img);
+    caption.textContent = current.caption;
+    source.setAttribute("href", current.source);
+  }
+}
+
+
+
+// hook into existing scroll listener
+scrollContent.addEventListener('scroll', () => {
+  updateFixedImageAndCaption();
+});
+
     </script>
 </body>
 </html>
